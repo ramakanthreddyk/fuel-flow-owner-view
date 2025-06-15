@@ -1,6 +1,6 @@
-
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import RequireRole from "@/components/RequireRole";
@@ -45,82 +45,146 @@ function UserRowSkeleton() {
   );
 }
 
+async function fetchUsersFromSupabase(): Promise<User[]> {
+  // Get users and their roles from Supabase
+  const { data: usersData, error: usersError } = await supabase.from("users").select("id, name, email");
+  if (usersError) throw new Error("Failed to fetch users: " + usersError.message);
+  // Fetch the user_roles table as well
+  const { data: rolesData, error: rolesError } = await supabase.from("user_roles").select("user_id, role");
+  if (rolesError) throw new Error("Failed to fetch user roles: " + rolesError.message);
+  // Map roles to users
+  return (usersData || []).map(u => ({
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    role: (rolesData?.find(r => r.user_id === u.id)?.role || "employee") as RoleOption,
+  }));
+}
+
 export default function UsersPage() {
   const [roleFilter, setRoleFilter] = useState<RoleOption | "all">("all");
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deleteUser, setDeleteUser] = useState<User | null>(null);
+  const queryClient = useQueryClient();
+
+  // Fetch users from Supabase
   const {
     data: usersFromServer,
     isLoading,
     error,
     refetch,
   } = useQuery<User[]>({
-    queryKey: ["users"],
-    queryFn: async () => {
-      const res = await fetch("/api/users");
-      if (!res.ok) throw new Error("Failed to fetch users");
-      return res.json();
-    },
+    queryKey: ["users-supabase"],
+    queryFn: fetchUsersFromSupabase,
   });
 
-  const [localUsers, setLocalUsers] = useState<User[]>([]);
+  // Add user
+  const addUserMutation = useMutation({
+    mutationFn: async (newUser: { name: string; email: string; password: string; role: RoleOption }) => {
+      // Insert into users table
+      const { data: insertUser, error: insertUserErr } = await supabase
+        .from("users")
+        .insert([{ name: newUser.name, email: newUser.email, password: newUser.password }])
+        .select("id, name, email")
+        .maybeSingle();
+      if (insertUserErr || !insertUser) throw new Error(insertUserErr?.message || "User creation failed");
 
-  // When server data changes, update localUsers only if empty
-  if (usersFromServer && localUsers.length === 0) {
-    setLocalUsers(usersFromServer);
-  }
+      // Insert into user_roles table
+      const { error: insertRoleErr } = await supabase
+        .from("user_roles")
+        .insert([{ user_id: insertUser.id, role: newUser.role }]);
+      if (insertRoleErr) {
+        // Rollback: delete user if role insert fails
+        await supabase.from("users").delete().eq("id", insertUser.id);
+        throw new Error(insertRoleErr.message || "Role insert failed");
+      }
 
-  // Add the new user to local state after backend success
-  function handleUserCreated(newUser: User) {
-    setLocalUsers(prev => [...prev, newUser]);
-    toast({ title: "User added", description: "The user was added to User Management." });
-  }
+      return {
+        id: insertUser.id,
+        name: insertUser.name,
+        email: insertUser.email,
+        role: newUser.role,
+      };
+    },
+    onSuccess: () => {
+      toast({ title: "User added", description: "The user was added to User Management." });
+      queryClient.invalidateQueries({ queryKey: ["users-supabase"] });
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+  });
+
+  // Edit user
+  const editUserMutation = useMutation({
+    mutationFn: async (updatedUser: User) => {
+      // Update users and user_roles
+      const { error: userErr } = await supabase
+        .from("users")
+        .update({ name: updatedUser.name, email: updatedUser.email })
+        .eq("id", updatedUser.id);
+      if (userErr) throw new Error(userErr.message);
+
+      const { error: roleErr } = await supabase
+        .from("user_roles")
+        .update({ role: updatedUser.role })
+        .eq("user_id", updatedUser.id);
+      if (roleErr) throw new Error(roleErr.message);
+
+      return updatedUser;
+    },
+    onSuccess: (_, updatedUser) => {
+      toast({ title: "User updated", description: `User ${updatedUser.name} saved.` });
+      queryClient.invalidateQueries({ queryKey: ["users-supabase"] });
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+  });
+
+  // Delete user
+  const deleteUserMutation = useMutation({
+    mutationFn: async (id: string) => {
+      // Delete from user_roles first due to FK constraint, then users
+      await supabase.from("user_roles").delete().eq("user_id", id);
+      const { error } = await supabase.from("users").delete().eq("id", id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      toast({ title: "User deleted", description: "User account removed." });
+      setDeleteUser(null);
+      queryClient.invalidateQueries({ queryKey: ["users-supabase"] });
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+  });
 
   // Filter users by selected role
   const filteredUsers = useMemo(() => {
-    const users = localUsers.length ? localUsers : usersFromServer || [];
-    if (!users) return [];
+    if (!usersFromServer) return [];
     return roleFilter !== "all"
-      ? users.filter((u) => u.role === roleFilter)
-      : users;
-  }, [localUsers, usersFromServer, roleFilter]);
+      ? usersFromServer.filter((u) => u.role === roleFilter)
+      : usersFromServer;
+  }, [usersFromServer, roleFilter]);
 
   // Data for the chart: count of users per role
-  const usersForChart = (localUsers.length ? localUsers : usersFromServer) || [];
   const roleCount = ["superadmin", "owner", "employee"].map(role => ({
     role,
     label: ROLE_LABELS[role as RoleOption],
-    count: usersForChart.filter(u => u.role === role).length,
+    count: (usersFromServer || []).filter(u => u.role === role).length,
   }));
-
-  // Handler for updating users after edit
-  function handleUserEdited(updatedUser: User) {
-    setLocalUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
-    toast({ title: "User updated", description: `User ${updatedUser.name} saved.` });
-  }
-
-  // Handler for delete
-  async function confirmDeleteUser(id: string) {
-    try {
-      const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete user");
-      setLocalUsers(prev => prev.filter(u => u.id !== id));
-      toast({ title: "User deleted", description: "User account removed." });
-      setDeleteUser(null);
-      refetch();
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    }
-  }
 
   return (
     <RequireRole roles={["superadmin"]}>
       <div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
           <h1 className="text-3xl font-bold">User Management</h1>
-          <AddUserDialog onCreated={refetch} onUserCreated={handleUserCreated} />
+          <AddUserDialog
+            onCreated={refetch}
+            onUserCreated={(usr) => addUserMutation.mutate(usr)}
+          />
         </div>
-
         <div className="mb-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex gap-2 items-center">
             <span className="font-medium text-sm">Role Filter:</span>
@@ -137,7 +201,6 @@ export default function UsersPage() {
             </Select>
           </div>
         </div>
-
         <div className="p-4 border rounded bg-white mt-2">
           <Table>
             <TableHeader>
@@ -194,8 +257,8 @@ export default function UsersPage() {
               <BarChart data={roleCount} height={200}>
                 <XAxis dataKey="label" />
                 <YAxis allowDecimals={false} />
-                <Bar dataKey="count" name="Count" 
-                  fill="#4A90E2" 
+                <Bar dataKey="count" name="Count"
+                  fill="#4A90E2"
                   radius={[4, 4, 0, 0]}
                   isAnimationActive={false}
                 />
@@ -210,7 +273,7 @@ export default function UsersPage() {
           <EditUserDialog
             user={editingUser}
             onClose={() => setEditingUser(null)}
-            onUserEdited={handleUserEdited}
+            onUserEdited={(usr) => editUserMutation.mutate(usr)}
           />
         )}
         {/* Delete Confirmation Dialog */}
@@ -231,7 +294,7 @@ export default function UsersPage() {
                 </Button>
                 <Button
                   variant="destructive"
-                  onClick={() => confirmDeleteUser(deleteUser.id)}
+                  onClick={() => deleteUserMutation.mutate(deleteUser.id)}
                 >
                   Delete
                 </Button>
