@@ -182,7 +182,16 @@ export default function UsersPage() {
           <h1 className="text-3xl font-bold">User Management</h1>
           <AddUserDialog
             onCreated={refetch}
-            onUserCreated={(usr) => addUserMutation.mutate(usr)}
+            onUserCreated={(usr) => {
+              // Only pass name, email, password, role; drop other fields
+              // (AddUserDialog always supplies all required fields)
+              addUserMutation.mutate({
+                name: usr.name,
+                email: usr.email,
+                password: (usr as any).password, // password is supplied from AddUserDialog form; fallback for types
+                role: usr.role,
+              });
+            }}
           />
         </div>
         <div className="mb-4 flex flex-col sm:flex-row items-center justify-between gap-2">
