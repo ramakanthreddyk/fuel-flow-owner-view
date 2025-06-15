@@ -1,51 +1,24 @@
 
 import React, { createContext, useContext, useReducer } from "react";
-
-type WizardRole = "owner" | "employee" | "";
-
-export interface WizardState {
-  user: null | {
-    name: string;
-    email: string;
-    password: string;
-    role: WizardRole;
-    user_id?: string;
-  };
-  station: null | {
-    station_name: string;
-    address?: string;
-    city?: string;
-    state?: string;
-    station_id?: string;
-  };
-  pumps: { label: string; pump_id?: string }[];
-  nozzles: {
-    pump_idx: number;
-    label: string;
-    fuel_type: "petrol" | "diesel";
-    initial_cumulative_reading?: string;
-    nozzle_id?: string;
-  }[];
-  assignedStation: null | { station_id: string; station_name: string };
-}
-
-const initialState: WizardState = {
-  user: null,
-  station: null,
-  pumps: [],
-  nozzles: [],
-  assignedStation: null,
-};
+import type { WizardContextData, UserCreationInput, StationInput, PumpInput, NozzleInput, EmployeeAssignmentInput } from "@/types/wizard.types";
 
 type Action =
   | { type: "reset" }
-  | { type: "setUser"; user: WizardState["user"] }
-  | { type: "setStation"; station: WizardState["station"] }
-  | { type: "setPumps"; pumps: WizardState["pumps"] }
-  | { type: "setNozzles"; nozzles: WizardState["nozzles"] }
-  | { type: "setAssignedStation"; assignedStation: WizardState["assignedStation"] };
+  | { type: "setUser"; user: WizardContextData["user"] }
+  | { type: "setStation"; station: WizardContextData["station"] }
+  | { type: "setPumps"; pumps: WizardContextData["pumps"] }
+  | { type: "setNozzles"; nozzles: WizardContextData["nozzles"] }
+  | { type: "setEmployeeAssignment"; employeeAssignment: EmployeeAssignmentInput };
 
-function reducer(state: WizardState, action: Action): WizardState {
+const initialState: WizardContextData = {
+  user: undefined,
+  station: undefined,
+  pumps: [],
+  nozzles: [],
+  employeeAssignment: undefined,
+};
+
+function reducer(state: WizardContextData, action: Action): WizardContextData {
   switch (action.type) {
     case "reset":
       return initialState;
@@ -57,21 +30,23 @@ function reducer(state: WizardState, action: Action): WizardState {
       return { ...state, pumps: action.pumps };
     case "setNozzles":
       return { ...state, nozzles: action.nozzles };
-    case "setAssignedStation":
-      return { ...state, assignedStation: action.assignedStation };
+    case "setEmployeeAssignment":
+      return { ...state, employeeAssignment: action.employeeAssignment };
     default:
       return state;
   }
 }
 
 const WizardContext = createContext<{
-  state: WizardState;
+  state: WizardContextData;
   dispatch: React.Dispatch<Action>;
-}>({ state: initialState, dispatch: () => {} });
+}>({
+  state: initialState,
+  dispatch: () => {},
+});
 
 export function WizardProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
-
   return (
     <WizardContext.Provider value={{ state, dispatch }}>
       {children}
