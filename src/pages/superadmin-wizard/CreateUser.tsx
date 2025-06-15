@@ -1,5 +1,5 @@
 
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +8,7 @@ import { toast } from "@/components/ui/use-toast";
 import { User as UserIcon, Mail, Lock, BadgeAlert } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
-import { WizardContext } from "@/context/WizardContext";
+import { useWizard } from "@/context/WizardContext";
 
 const schema = z.object({
   name: z.string().min(2, "Username is required"),
@@ -31,7 +31,7 @@ export default function CreateUser() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
-  const wizardCtx = useContext(WizardContext);
+  const { dispatch } = useWizard();
 
   // Validate form with zod
   const validation = schema.safeParse(form);
@@ -61,8 +61,8 @@ export default function CreateUser() {
 
     await new Promise((r) => setTimeout(r, 700));
     setSuccess(true);
-    // Update wizard context to mark step as completed
-    wizardCtx?.setCompletedStep("user");
+    // Update wizard context to mark step as completed by saving user data
+    dispatch({ type: "setUser", user: form });
     toast({
       title: "User staged!",
       description: `User: ${form.name}, Email: ${form.email}, Role: ${form.role}`,
