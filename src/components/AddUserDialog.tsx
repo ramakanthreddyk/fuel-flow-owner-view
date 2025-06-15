@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Dialog,
@@ -22,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
+import { useAuth } from "@/context/AuthContext";
 
 type RoleOption = "superadmin" | "owner" | "employee";
 
@@ -43,6 +45,8 @@ export function AddUserDialog({ onCreated, onUserCreated }: AddUserDialogProps) 
     },
   });
 
+  const { session } = useAuth();
+
   // Add a helper to retry fetching just-created user, up to 3 tries (750ms total)
   async function ensureUserInDb(userId: string, retries = 3, delayMs = 250): Promise<boolean> {
     for (let i = 0; i < retries; i++) {
@@ -58,10 +62,17 @@ export function AddUserDialog({ onCreated, onUserCreated }: AddUserDialogProps) 
   async function onSubmit(values: { name: string; email: string; password: string; role: string }) {
     setLoading(true);
     try {
-      // Call Edge Function instead of client-side insert
+      // Add Authorization header with access token, if available
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      }
+
       const result = await fetch("https://lkzodyzhxdyztormkfbw.supabase.co/functions/v1/create-user-with-role", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify(values),
       });
       const data = await result.json();
