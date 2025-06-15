@@ -65,6 +65,48 @@ export type Database = {
           },
         ]
       }
+      manual_readings: {
+        Row: {
+          created_at: string
+          cumulative_volume: number
+          id: string
+          nozzle_id: string
+          recorded_at: string
+          station_id: string
+        }
+        Insert: {
+          created_at?: string
+          cumulative_volume: number
+          id?: string
+          nozzle_id: string
+          recorded_at?: string
+          station_id: string
+        }
+        Update: {
+          created_at?: string
+          cumulative_volume?: number
+          id?: string
+          nozzle_id?: string
+          recorded_at?: string
+          station_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_readings_nozzle_id_fkey"
+            columns: ["nozzle_id"]
+            isOneToOne: false
+            referencedRelation: "nozzles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_readings_station_id_fkey"
+            columns: ["station_id"]
+            isOneToOne: false
+            referencedRelation: "stations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nozzles: {
         Row: {
           fuel_type: string
