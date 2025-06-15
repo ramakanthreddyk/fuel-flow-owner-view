@@ -1,5 +1,7 @@
 
 import { useAuth } from "./AuthContext";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 // Define the user shape expected by old code
 export interface AppUser {
@@ -10,25 +12,60 @@ export interface AppUser {
   id?: string;
 }
 
-// Use user from AuthContext. Provide fallback role/plan for now.
-export function useUser(): AppUser {
-  const { user } = useAuth();
+// New type for return
+interface UseUserResult {
+  user: AppUser | null;
+  loading: boolean;
+  error: string | null;
+}
 
-  // Fallback to dummy info if not signed in
-  if (!user) {
-    return {
-      name: "Demo User",
-      role: "owner",
-      plan: "free",
-    };
-  }
+/**
+ * Custom hook to get current profile from Supabase.
+ * Usage: const { user, loading, error } = useUser();
+ */
+export function useUser(): UseUserResult {
+  const { user: authUser } = useAuth();
+  const [profile, setProfile] = useState<AppUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Use Supabase user email as name; customize role/plan as you wish (for now, all users are "owner"/"free", update when backend ready)
-  return {
-    name: user.email || "No Email",
-    email: user.email,
-    id: user.id,
-    role: "owner",
-    plan: "free",
-  };
+  useEffect(() => {
+    if (!authUser) {
+      setProfile(null);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    supabase
+      .from("profiles")
+      .select("id, name, email, role")
+      .eq("id", authUser.id)
+      .single()
+      .then(({ data, error }) => {
+        if (error || !data) {
+          setProfile({
+            // Fallback to authUser (should not usually happen)
+            name: authUser.email || "Unknown",
+            email: authUser.email,
+            id: authUser.id,
+            role: "owner",
+            plan: "free",
+          });
+          setError(error ? error.message : "Profile not found");
+        } else {
+          // TODO: For "plan", assume "premium" if user is superadmin, else "free". Modify logic if plan becomes available.
+          setProfile({
+            name: data.name ?? data.email ?? "Unknown",
+            email: data.email,
+            id: data.id,
+            role: data.role,
+            plan: data.role === "superadmin" ? "premium" : "free",
+          });
+        }
+        setLoading(false);
+      });
+  }, [authUser]);
+
+  return { user: profile, loading, error };
 }

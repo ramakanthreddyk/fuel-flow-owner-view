@@ -7,8 +7,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useUser } from "@/context/UserContext";
 
 const Navbar = () => {
-  const { user, signOut } = useAuth();
-  const appUser = useUser();
+  const { user: authUser, signOut } = useAuth();
+  const { user: appUser, loading: userLoading } = useUser();
 
   const handleLogin = () => (window.location.href = "/auth");
   const handleLogout = async () => {
@@ -18,13 +18,13 @@ const Navbar = () => {
 
   // Map role for display
   const roleLabel =
-    appUser.role === "superadmin"
+    appUser?.role === "superadmin"
       ? "Superadmin"
-      : appUser.role === "owner"
+      : appUser?.role === "owner"
       ? "Owner"
-      : appUser.role === "employee"
+      : appUser?.role === "employee"
       ? "Employee"
-      : appUser.role;
+      : appUser?.role;
 
   return (
     <header className="bg-white border-b shadow-sm sticky top-0 z-40">
@@ -38,24 +38,30 @@ const Navbar = () => {
         </Link>
         {/* Right: User Info and Logout/Login */}
         <div className="flex items-center gap-2">
-          {user && (
+          {userLoading ? (
+            <div className="mr-2 text-sm text-gray-600">Loading...</div>
+          ) : (
             <>
-              <div className="mr-2 text-sm font-medium text-gray-700 select-none flex items-center gap-2">
-                <span className="truncate">{appUser.name}</span>
-                <span className="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600 border border-gray-200 font-semibold">
-                  {roleLabel}
-                </span>
-              </div>
-              <Button variant="outline" size="sm" onClick={handleLogout}>
-                <LogOut className="mr-2 text-blue-600" />
-                Logout
-              </Button>
+              {authUser && appUser && (
+                <>
+                  <div className="mr-2 text-sm font-medium text-gray-700 select-none flex items-center gap-2">
+                    <span className="truncate">{appUser.name}</span>
+                    <span className="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600 border border-gray-200 font-semibold">
+                      {roleLabel}
+                    </span>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={handleLogout}>
+                    <LogOut className="mr-2 text-blue-600" />
+                    Logout
+                  </Button>
+                </>
+              )}
+              {!authUser && (
+                <Button variant="default" size="sm" onClick={handleLogin}>
+                  Login
+                </Button>
+              )}
             </>
-          )}
-          {!user && (
-            <Button variant="default" size="sm" onClick={handleLogin}>
-              Login
-            </Button>
           )}
         </div>
       </div>
