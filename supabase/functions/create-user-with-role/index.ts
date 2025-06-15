@@ -41,9 +41,30 @@ serve(async (req) => {
       });
     }
 
-    // 2. Add entry to public.users
-    // The trigger will populate user_roles (role: 'employee' by default)
+    // 2. Check if user is already in public.users
     const { user } = userData;
+    const { data: existingUser, error: fetchUserError } = await supabase
+      .from("users")
+      .select("id, name, email")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (fetchUserError) {
+      return new Response(JSON.stringify({ error: fetchUserError.message }), {
+        status: 400,
+        headers: corsHeaders,
+      });
+    }
+
+    if (existingUser) {
+      // User already exists in the users table. Don't insert.
+      return new Response(
+        JSON.stringify({ id: existingUser.id, name: existingUser.name, email: existingUser.email, role: "employee", message: "User already exists." }),
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
+    // 3. Add entry to public.users (trigger will handle user_roles)
     const { data: appUser, error: userTableError } = await supabase
       .from("users")
       .insert([{ id: user.id, name, email, password }])
