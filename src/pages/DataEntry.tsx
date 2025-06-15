@@ -19,6 +19,8 @@ import { useToast, toast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import RequireRole from "@/components/RequireRole";
 import { useUser } from "@/context/UserContext";
+import ManualEntryForm from "./data-entry/ManualEntryForm";
+import OcrEntryForm from "./data-entry/OcrEntryForm";
 
 // New: Util hook to fetch user's assigned stations
 function useAssignedStations(userId?: string) {
@@ -656,8 +658,8 @@ export default function DataEntryPage() {
                   Tank Refill
                 </TabsTrigger>
               </TabsList>
-              <TabsContent value="ocr"><OcrForm /></TabsContent>
-              <TabsContent value="manual"><ManualForm /></TabsContent>
+              <TabsContent value="ocr"><OcrEntryForm /></TabsContent>
+              <TabsContent value="manual"><ManualEntryForm /></TabsContent>
               <TabsContent value="tender"><TenderForm /></TabsContent>
               <TabsContent value="refill"><RefillForm /></TabsContent>
             </Tabs>
