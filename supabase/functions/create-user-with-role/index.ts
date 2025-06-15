@@ -70,38 +70,13 @@ serve(async (req) => {
       }
     }
 
-    // 3. Ensure user role is set AFTER user insert is confirmed
-    const ensureUserRole = async (uid: string, roleVal: string) => {
-      const { data: existingRole, error: readErr } = await supabase
-        .from("user_roles")
-        .select("id")
-        .eq("user_id", uid)
-        .eq("role", roleVal)
-        .maybeSingle();
-
-      if (readErr) return { error: `Error reading user_roles: ${readErr.message}` };
-
-      if (!existingRole) {
-        const { error: insertErr } = await supabase
-          .from("user_roles")
-          .insert([{ user_id: uid, role: roleVal }]);
-
-        if (insertErr) return { error: `Role insert failed: ${insertErr.message}` };
-      }
-
-      return { ok: true };
-    };
-
-    const roleResult = await ensureUserRole(userId, role);
-    if ("error" in roleResult) {
-      return new Response(JSON.stringify({ error: roleResult.error }), {
-        status: 400,
-        headers: corsHeaders,
-      });
-    }
+    // 3. user_roles row is now inserted automatically by database trigger after inserting into users.
+    // Optional: You may want to update the role from its default value (employee) if requested specifically.
+    // If you need to support a non-default role at insert time, you may want extra logic.
+    // For now, the role will always default to 'employee' on user creation.
 
     return new Response(
-      JSON.stringify({ id: userId, name, email, role, message: "User created successfully" }),
+      JSON.stringify({ id: userId, name, email, role: "employee", message: "User created successfully" }),
       { status: 200, headers: corsHeaders }
     );
 
