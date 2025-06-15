@@ -23,7 +23,8 @@ export default function OcrEntryForm() {
   const [selectedStationId, setSelectedStationId] = useState<string | undefined>(undefined);
   const { data: pumps = [] } = usePumps(selectedStationId);
   const [selectedPumpId, setSelectedPumpId] = useState<string | undefined>();
-  const { data: nozzles = [] } = useNozzles(selectedPumpId);
+  // FIX: Correct usage for object param
+  const { data: nozzles = [] } = useNozzles({ pumpId: selectedPumpId });
   const [selectedNozzleId, setSelectedNozzleId] = useState<string | undefined>();
 
   // Set defaults, reset pump/nozzle on station change
