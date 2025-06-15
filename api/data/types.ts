@@ -1,22 +1,25 @@
 
+// Adjusted to match new schema after migration
+
 import { z } from "zod";
 
 // ----- User -----
-export const UserRole = z.enum(["owner", "employee"]);
-export type UserRole = z.infer<typeof UserRole>;
-
 export const UserInput = z.object({
   name: z.string().min(1),
   email: z.string().email(),
   password: z.string().min(1),
-  role: UserRole,
 });
 export type UserInput = z.infer<typeof UserInput>;
 
 export const User = UserInput.extend({
   id: z.string().uuid(),
+  // No more role field here!
 });
 export type User = z.infer<typeof User>;
+
+// ----- UserRole -----
+export const UserRole = z.enum(["superadmin", "owner", "employee"]);
+export type UserRole = z.infer<typeof UserRole>;
 
 // ----- Station -----
 export const StationInput = z.object({
@@ -59,7 +62,7 @@ export const Nozzle = NozzleInput.extend({
 });
 export type Nozzle = z.infer<typeof Nozzle>;
 
-// ----- Employee Assignment -----
+// ----- Assignment -----
 export const AssignmentInput = z.object({
   employeeId: z.string().uuid(),
   stationId: z.string().uuid(),

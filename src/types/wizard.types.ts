@@ -1,4 +1,3 @@
-
 // ─────────────────────────────────────────────────────
 // Types for Superadmin Setup Wizard (Full Flow)
 // ─────────────────────────────────────────────────────
@@ -11,7 +10,7 @@ export interface UserCreationInput {
   name: string;
   email: string;
   password: string;
-  role: UserRole;
+  // role: UserRole;   // Now handled in user_roles, not direct on users
 }
 
 // ─── Step 2: Create Station ───────────────────────────

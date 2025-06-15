@@ -70,26 +70,26 @@ export type Database = {
           fuel_type: string
           id: string
           label: string
-          station_id: string
+          pump_id: string | null
         }
         Insert: {
           fuel_type: string
           id?: string
           label: string
-          station_id: string
+          pump_id?: string | null
         }
         Update: {
           fuel_type?: string
           id?: string
           label?: string
-          station_id?: string
+          pump_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "nozzles_station_id_fkey"
-            columns: ["station_id"]
+            foreignKeyName: "nozzles_pump_id_fkey"
+            columns: ["pump_id"]
             isOneToOne: false
-            referencedRelation: "stations"
+            referencedRelation: "pumps"
             referencedColumns: ["id"]
           },
         ]
@@ -102,7 +102,7 @@ export type Database = {
           id: string
           image_url: string | null
           nozzle_id: string
-          reading_datetime: string
+          recorded_at: string
           station_id: string
           uploaded_by: string | null
         }
@@ -113,7 +113,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           nozzle_id: string
-          reading_datetime: string
+          recorded_at: string
           station_id: string
           uploaded_by?: string | null
         }
@@ -124,7 +124,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           nozzle_id?: string
-          reading_datetime?: string
+          recorded_at?: string
           station_id?: string
           uploaded_by?: string | null
         }
@@ -211,7 +211,9 @@ export type Database = {
           id: string
           nozzle_id: string
           previous_reading: number
-          reading_datetime: string
+          price_per_litre: number | null
+          reading_id: string | null
+          recorded_at: string
           sale_volume: number
           station_id: string
           status: Database["public"]["Enums"]["sale_status"]
@@ -225,7 +227,9 @@ export type Database = {
           id?: string
           nozzle_id: string
           previous_reading: number
-          reading_datetime: string
+          price_per_litre?: number | null
+          reading_id?: string | null
+          recorded_at: string
           sale_volume: number
           station_id: string
           status?: Database["public"]["Enums"]["sale_status"]
@@ -239,7 +243,9 @@ export type Database = {
           id?: string
           nozzle_id?: string
           previous_reading?: number
-          reading_datetime?: string
+          price_per_litre?: number | null
+          reading_id?: string | null
+          recorded_at?: string
           sale_volume?: number
           station_id?: string
           status?: Database["public"]["Enums"]["sale_status"]
@@ -268,6 +274,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          is_active: boolean | null
           name: string
         }
         Insert: {
@@ -275,6 +282,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          is_active?: boolean | null
           name: string
         }
         Update: {
@@ -282,6 +290,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          is_active?: boolean | null
           name?: string
         }
         Relationships: []
@@ -314,29 +323,29 @@ export type Database = {
         Row: {
           fuel_type: string
           id: string
+          litres: number
           notes: string | null
           refill_datetime: string
           station_id: string
           user_id: string
-          volume: number
         }
         Insert: {
           fuel_type: string
           id?: string
+          litres: number
           notes?: string | null
           refill_datetime?: string
           station_id: string
           user_id: string
-          volume: number
         }
         Update: {
           fuel_type?: string
           id?: string
+          litres?: number
           notes?: string | null
           refill_datetime?: string
           station_id?: string
           user_id?: string
-          volume?: number
         }
         Relationships: [
           {
@@ -351,7 +360,7 @@ export type Database = {
       tender_entries: {
         Row: {
           amount: number
-          entry_datetime: string
+          created_at: string
           id: string
           notes: string | null
           station_id: string
@@ -359,7 +368,7 @@ export type Database = {
         }
         Insert: {
           amount: number
-          entry_datetime?: string
+          created_at?: string
           id?: string
           notes?: string | null
           station_id: string
@@ -367,7 +376,7 @@ export type Database = {
         }
         Update: {
           amount?: number
-          entry_datetime?: string
+          created_at?: string
           id?: string
           notes?: string | null
           station_id?: string
@@ -385,22 +394,28 @@ export type Database = {
       }
       user_profiles: {
         Row: {
+          brand: string | null
           created_at: string
           display_name: string | null
+          phone_number: string | null
           plan: Database["public"]["Enums"]["plan_type"]
           station_id: string | null
           user_id: string
         }
         Insert: {
+          brand?: string | null
           created_at?: string
           display_name?: string | null
+          phone_number?: string | null
           plan?: Database["public"]["Enums"]["plan_type"]
           station_id?: string | null
           user_id: string
         }
         Update: {
+          brand?: string | null
           created_at?: string
           display_name?: string | null
+          phone_number?: string | null
           plan?: Database["public"]["Enums"]["plan_type"]
           station_id?: string | null
           user_id?: string
@@ -435,7 +450,6 @@ export type Database = {
           id: string
           name: string
           password: string
-          role: string
         }
         Insert: {
           deleted_at?: string | null
@@ -443,7 +457,6 @@ export type Database = {
           id?: string
           name: string
           password: string
-          role: string
         }
         Update: {
           deleted_at?: string | null
@@ -451,7 +464,6 @@ export type Database = {
           id?: string
           name?: string
           password?: string
-          role?: string
         }
         Relationships: []
       }
@@ -477,6 +489,7 @@ export type Database = {
       plan_type: "basic" | "premium"
       profile_role: "superadmin" | "admin" | "user"
       sale_status: "draft" | "final"
+      user_role: "superadmin" | "owner" | "employee"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -596,6 +609,7 @@ export const Constants = {
       plan_type: ["basic", "premium"],
       profile_role: ["superadmin", "admin", "user"],
       sale_status: ["draft", "final"],
+      user_role: ["superadmin", "owner", "employee"],
     },
   },
 } as const
