@@ -68,7 +68,13 @@ export default function AuthPage() {
           />
           {error && <div className="text-destructive text-sm">{error}</div>}
           <Button className="w-full mt-2" type="submit" disabled={loading}>
-            {loading ? (mode === "login" ? "Logging in..." : "Signing up...") : (mode === "login" ? "Login" : "Sign Up")}
+            {loading
+              ? mode === "login"
+                ? "Logging in..."
+                : "Signing up..."
+              : mode === "login"
+                ? "Login"
+                : "Sign Up"}
           </Button>
         </form>
         <div className="mt-4 text-sm text-center">
@@ -79,6 +85,7 @@ export default function AuthPage() {
                 className="text-blue-600 font-medium ml-1"
                 onClick={() => setMode("signup")}
                 disabled={loading}
+                type="button"
               >
                 Sign up
               </button>
@@ -90,6 +97,7 @@ export default function AuthPage() {
                 className="text-blue-600 font-medium ml-1"
                 onClick={() => setMode("login")}
                 disabled={loading}
+                type="button"
               >
                 Log in
               </button>
@@ -103,3 +111,4 @@ export default function AuthPage() {
     </div>
   );
 }
+
