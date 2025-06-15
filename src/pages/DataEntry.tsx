@@ -40,6 +40,15 @@ function INRFormat(amount: string | number) {
   return Number(amount).toLocaleString("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: 2 });
 }
 
+function generateMockApiResponse(payload: any) {
+  // simulate a backend response containing id
+  return {
+    ...payload,
+    id: Math.floor(Math.random() * 1000000).toString(),
+    createdAt: new Date().toISOString(),
+  };
+}
+
 export default function DataEntryPage() {
   const { toast } = useToast();
   const user = useUser();
@@ -158,7 +167,6 @@ export default function DataEntryPage() {
       }
       setSubmitting(true);
       let uploadedUrl = fileUrl; // For the mock, just use preview
-      // API demo - you could also call real endpoint here.
       const payload = {
         stationId: selectedStationId,
         nozzleId,
@@ -168,9 +176,13 @@ export default function DataEntryPage() {
         method: "ocr",
       };
       try {
-        // Simulate POST for demo, replace with real request if backend ready.
-        // await fetch("/api/ocr-readings", { method: "POST", body: JSON.stringify(payload), headers: { "Content-Type": "application/json" }});
-        setEntries((prev) => [{ tab: "OCR Entry", ...payload }, ...prev]);
+        // Simulate API call: endpoint, payload, mock response
+        const apiEndpoint = "/api/ocr-readings";
+        const apiResponse = generateMockApiResponse(payload);
+        setEntries((prev) => [
+          { tab: "OCR Entry", ...payload, apiEndpoint, apiPayload: payload, apiResponse },
+          ...prev
+        ]);
         toast({ title: "OCR Entry Saved", description: "Your OCR entry has been saved." });
         reset();
       } catch (e:any) {
@@ -250,8 +262,12 @@ export default function DataEntryPage() {
         method: "manual"
       };
       try {
-        // Simulate POST and demo store
-        setEntries((prev) => [{ tab: "Manual Entry", ...payload }, ...prev]);
+        const apiEndpoint = "/api/manual-readings";
+        const apiResponse = generateMockApiResponse(payload);
+        setEntries((prev) => [
+          { tab: "Manual Entry", ...payload, apiEndpoint, apiPayload: payload, apiResponse },
+          ...prev
+        ]);
         toast({ title: "Manual Entry Saved", description: "Your manual entry has been saved." });
         reset();
       } catch (e:any) {
@@ -329,7 +345,12 @@ export default function DataEntryPage() {
         remarks,
       };
       try {
-        setEntries((prev) => [{ tab: "Tender Entry", ...payload }, ...prev]);
+        const apiEndpoint = "/api/tenders";
+        const apiResponse = generateMockApiResponse(payload);
+        setEntries((prev) => [
+          { tab: "Tender Entry", ...payload, apiEndpoint, apiPayload: payload, apiResponse },
+          ...prev
+        ]);
         toast({ title: "Tender Entry Saved", description: "Your tender entry has been saved." });
         reset();
       } catch (e:any) {
@@ -433,7 +454,12 @@ export default function DataEntryPage() {
         filledBy: user.name,
       };
       try {
-        setEntries((prev) => [{ tab: "Tank Refill", ...payload }, ...prev]);
+        const apiEndpoint = "/api/refills";
+        const apiResponse = generateMockApiResponse(payload);
+        setEntries((prev) => [
+          { tab: "Tank Refill", ...payload, apiEndpoint, apiPayload: payload, apiResponse },
+          ...prev
+        ]);
         toast({ title: "Refill Entry Saved", description: "Your tank refill entry has been saved." });
         reset();
       } catch (e:any) {
@@ -555,6 +581,9 @@ export default function DataEntryPage() {
                         <th className="p-2 text-left">Tender Type</th>
                         <th className="p-2 text-left">Filled By</th>
                         <th className="p-2 text-left">Remarks</th>
+                        <th className="p-2 text-left">API Endpoint</th>
+                        <th className="p-2 text-left">API Payload</th>
+                        <th className="p-2 text-left">API Response</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -580,6 +609,15 @@ export default function DataEntryPage() {
                           <td className="p-2">{entry.tenderType || ""}</td>
                           <td className="p-2">{entry.filledBy || ""}</td>
                           <td className="p-2">{entry.remarks || ""}</td>
+                          <td className="p-2">
+                            <div className="break-all text-xs">{entry.apiEndpoint || ""}</div>
+                          </td>
+                          <td className="p-2">
+                            <pre className="max-w-xs whitespace-pre-wrap break-all text-xs bg-gray-50 p-1 rounded">{entry.apiPayload ? JSON.stringify(entry.apiPayload, null, 2) : ""}</pre>
+                          </td>
+                          <td className="p-2">
+                            <pre className="max-w-xs whitespace-pre-wrap break-all text-xs bg-gray-50 p-1 rounded">{entry.apiResponse ? JSON.stringify(entry.apiResponse, null, 2) : ""}</pre>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
