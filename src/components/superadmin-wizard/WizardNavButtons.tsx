@@ -3,6 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useWizard } from "@/context/WizardContext";
+import type { UserRole } from "@/types/wizard.types";
 
 // Wizard steps and routes, also considering role-based flows
 const wizardRoutes = [
@@ -37,7 +38,7 @@ const WizardNavButtons: React.FC<Props> = ({
   const { state } = useWizard();
 
   // Determine steps based on user role
-  const role: "owner"|"employee"|undefined = state.user?.role;
+  const role: UserRole | undefined = state.user?.role;
   let steps = wizardRoutes;
   // Adjust for employee flow (skip station, pumps, nozzles)
   if (role === "employee") {
