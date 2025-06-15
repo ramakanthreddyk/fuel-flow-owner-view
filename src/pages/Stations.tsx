@@ -18,12 +18,18 @@ async function fetchDashboard(userId: string): Promise<DashboardData> {
 }
 
 export default function StationsPage() {
-  const user = useUser();
+  const { user, loading, error } = useUser();
+  console.log("[StationsPage] useUser():", { user, loading, error });
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["dashboard", user.id],
-    queryFn: () => fetchDashboard(user.id),
+  const { data, isLoading, error: queryError } = useQuery({
+    queryKey: ["dashboard", user?.id],
+    queryFn: () => fetchDashboard(user?.id || ""),
+    enabled: !!user?.id,
   });
+
+  if (loading) return <div className="p-8 text-gray-600">Loading...</div>;
+  if (error) return <div className="p-8 text-red-500">Error: {error}</div>;
+  if (!user) return <div className="p-8 text-gray-600">No user data found.</div>;
 
   return (
     <div>
@@ -35,7 +41,7 @@ export default function StationsPage() {
       <div className="p-4 border rounded bg-white mb-8">
         <h2 className="font-semibold text-lg mb-3">Sales By Day</h2>
         {isLoading && <div>Loading sales data...</div>}
-        {error && <div className="text-red-600">Error loading data</div>}
+        {queryError && <div className="text-red-600">Error loading data</div>}
         {data && (
           <Table>
             <TableHeader>
@@ -59,4 +65,3 @@ export default function StationsPage() {
     </div>
   );
 }
-

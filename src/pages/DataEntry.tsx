@@ -50,8 +50,8 @@ function generateMockApiResponse(payload: any) {
 }
 
 export default function DataEntryPage() {
-  const { toast } = useToast();
-  const user = useUser();
+  const { user, loading, error } = useUser();
+  console.log("[DataEntryPage] useUser():", { user, loading, error });
 
   // For local preview of entries
   const [entries, setEntries] = useState<any[]>([]);
