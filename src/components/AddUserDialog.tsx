@@ -46,22 +46,40 @@ export function AddUserDialog({ onCreated, onUserCreated }: AddUserDialogProps) 
   async function onSubmit(values: { name: string; email: string; password: string; role: string }) {
     setLoading(true);
     try {
-      const res = await fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error?.email?._errors?.[0] || data.error || "Failed to add user");
+      // Create user in Supabase (users table)
+      const { data: insertUser, error: insertUserErr } = await import("@/integrations/supabase/client").then(mod =>
+        mod.supabase
+          .from("users")
+          .insert([{ name: values.name, email: values.email, password: values.password }])
+          .select("id, name, email")
+          .maybeSingle()
+      );
+      if (insertUserErr || !insertUser) {
+        throw new Error(insertUserErr?.message || "User creation failed");
       }
-      const backendUser = await res.json();
+      // Assign role
+      const { error: insertRoleErr } = await import("@/integrations/supabase/client").then(mod =>
+        mod.supabase
+          .from("user_roles")
+          .insert([{ user_id: insertUser.id, role: values.role }])
+      );
+      if (insertRoleErr) {
+        // Clean up: rollback user insert
+        await import("@/integrations/supabase/client").then(mod =>
+          mod.supabase.from("users").delete().eq("id", insertUser.id)
+        );
+        throw new Error(insertRoleErr.message || "Role insert failed");
+      }
+
       setOpen(false);
       toast({ title: "User added", description: "The user has been created." });
       form.reset();
       onUserCreated?.({
-        ...backendUser,
-        email: values.email, // backend returns id, name, role. Add email for local
+        id: insertUser.id,
+        name: insertUser.name,
+        email: values.email,
+        role: values.role as RoleOption,
+        password: values.password, // Only for further form mutation/use; never store/reveal password
       });
       onCreated?.();
     } catch (err: any) {

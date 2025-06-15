@@ -39,17 +39,19 @@ export default function EditUserDialog({ user, onClose, onUserEdited }: EditUser
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/users/${user.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error?.email?._errors?.[0] || data.error || "Failed to update user");
-      }
-      const updated = await res.json();
-      onUserEdited({ ...updated, email: form.email });
+      // Update users table (name, email)
+      const { error: userErr } = await import("@/integrations/supabase/client").then(mod =>
+        mod.supabase.from("users").update({ name: form.name, email: form.email }).eq("id", form.id)
+      );
+      if (userErr) throw new Error(userErr.message);
+
+      // Update user_roles table (role)
+      const { error: roleErr } = await import("@/integrations/supabase/client").then(mod =>
+        mod.supabase.from("user_roles").update({ role: form.role }).eq("user_id", form.id)
+      );
+      if (roleErr) throw new Error(roleErr.message);
+
+      onUserEdited({ ...form });
       onClose();
     } catch (e: any) {
       setError(e.message);
