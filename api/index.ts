@@ -13,6 +13,12 @@ import stationOverviewRoutes from "./routes/station-overview";
 import readingsRoutes from "./routes/readings";
 import tenderRoute from "./routes/tender";
 import dashboardRootRoute from "./routes/dashboard-root";
+import tenderEntriesRoutes from "./routes/tender-entries";
+import refillsRoutes from "./routes/refills";
+import ocrReadingsRoutes from "./routes/ocr-readings";
+import plansRoutes from "./routes/plans";
+import analyticsRoutes from "./routes/analytics";
+import uploadsRoutes from "./routes/uploads";
 
 const app = express();
 
