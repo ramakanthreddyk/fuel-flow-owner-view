@@ -3,25 +3,41 @@ import { useState } from "react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"; // <-- make sure import
 import { toast } from "@/components/ui/use-toast";
 
 interface AddStationDialogProps {
   onStationAdded?: (station: any) => void;
 }
 
+const PLAN_OPTIONS = [
+  { value: "free", label: "Free Plan" },
+  { value: "premium", label: "Premium Plan" }
+];
+
 export function AddStationDialog({ onStationAdded }: AddStationDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ name: "", address: "", city: "", state: "" });
+  const [form, setForm] = useState({
+    name: "",
+    brand: "",
+    address: "",
+    city: "",
+    state: "",
+    planId: "free"
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
   };
 
+  const handlePlanChange = (value: string) => {
+    setForm(f => ({ ...f, planId: value }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate API call here in the future. For now, show a toast.
     await new Promise(r => setTimeout(r, 1000));
     toast({
       title: "Station added",
@@ -30,7 +46,7 @@ export function AddStationDialog({ onStationAdded }: AddStationDialogProps) {
     });
     setLoading(false);
     setOpen(false);
-    setForm({ name: "", address: "", city: "", state: "" });
+    setForm({ name: "", brand: "", address: "", city: "", state: "", planId: "free" });
     if (onStationAdded) onStationAdded(form);
   };
 
@@ -52,6 +68,10 @@ export function AddStationDialog({ onStationAdded }: AddStationDialogProps) {
             <Input id="name" name="name" value={form.name} onChange={handleChange} required autoFocus />
           </div>
           <div>
+            <label className="block text-sm font-medium mb-1" htmlFor="brand">Brand</label>
+            <Input id="brand" name="brand" value={form.brand} onChange={handleChange} placeholder="e.g. IndianOil" />
+          </div>
+          <div>
             <label className="block text-sm font-medium mb-1" htmlFor="address">Address</label>
             <Input id="address" name="address" value={form.address} onChange={handleChange} />
           </div>
@@ -64,6 +84,19 @@ export function AddStationDialog({ onStationAdded }: AddStationDialogProps) {
               <label className="block text-sm font-medium mb-1" htmlFor="state">State</label>
               <Input id="state" name="state" value={form.state} onChange={handleChange} />
             </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1" htmlFor="planId">Plan</label>
+            <Select value={form.planId} onValueChange={handlePlanChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Plan" />
+              </SelectTrigger>
+              <SelectContent>
+                {PLAN_OPTIONS.map(plan => (
+                  <SelectItem key={plan.value} value={plan.value}>{plan.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <DialogFooter>
             <Button type="submit" disabled={loading || !form.name}>
