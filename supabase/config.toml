@@ -1,0 +1,8 @@
+
+project_id = "lkzodyzhxdyztormkfbw"
+
+[functions.create-user-with-role]
+verify_jwt = true
+
+[functions.delete-user-fully]
+verify_jwt = true

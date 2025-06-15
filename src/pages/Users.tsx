@@ -142,16 +142,21 @@ export default function UsersPage() {
     }
   });
 
-  // Delete user
+  // Delete user (now via edge function)
   const deleteUserMutation = useMutation({
     mutationFn: async (id: string) => {
-      // Delete from user_roles first due to FK constraint, then users
-      await supabase.from("user_roles").delete().eq("user_id", id);
-      const { error } = await supabase.from("users").delete().eq("id", id);
-      if (error) throw new Error(error.message);
+      const { error, data } = await supabase.functions.invoke("delete-user-fully", {
+        body: { id },
+      });
+      if (error) {
+        throw new Error(error.message || "Edge function failed");
+      }
+      if (data && data.error) {
+        throw new Error(data.error);
+      }
     },
     onSuccess: () => {
-      toast({ title: "User deleted", description: "User account removed." });
+      toast({ title: "User deleted", description: "User account fully removed." });
       setDeleteUser(null);
       queryClient.invalidateQueries({ queryKey: ["users-supabase"] });
     },
