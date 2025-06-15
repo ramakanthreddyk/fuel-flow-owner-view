@@ -12,9 +12,28 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { useUser } from "@/context/UserContext";
-import { LayoutDashboard, Building, ShoppingCart, FileEdit, Users, Settings, Lock } from "lucide-react";
+import {
+  LayoutDashboard,
+  Building,
+  ShoppingCart,
+  FileEdit,
+  Users,
+  Settings,
+  Lock,
+} from "lucide-react";
 import React from "react";
 import { useLocation } from "react-router-dom";
+
+// Map icon names to Tailwind color classes
+const ICON_COLORS: Record<string, string> = {
+  LayoutDashboard: "text-blue-600",
+  Building: "text-green-600",
+  ShoppingCart: "text-pink-600",
+  FileEdit: "text-orange-500",
+  Users: "text-teal-600",
+  Settings: "text-indigo-700",
+  Lock: "text-gray-400",
+};
 
 // Sidebar items, with required role if restricted
 const NAV_ITEMS = [
@@ -25,30 +44,35 @@ const NAV_ITEMS = [
         label: "Dashboard",
         to: "/dashboard",
         icon: LayoutDashboard,
+        iconKey: "LayoutDashboard",
         requireRole: null,
       },
       {
         label: "Stations",
         to: "/stations",
         icon: Building,
+        iconKey: "Building",
         requireRole: "owner",
       },
       {
         label: "Sales",
         to: "/sales",
         icon: ShoppingCart,
+        iconKey: "ShoppingCart",
         requireRole: "owner",
       },
       {
         label: "Data Entry",
         to: "/data-entry",
         icon: FileEdit,
+        iconKey: "FileEdit",
         requireRole: "owner",
       },
       {
         label: "Employees",
         to: "/employees",
         icon: Users,
+        iconKey: "Users",
         requireRole: "superadmin",
       },
     ],
@@ -60,6 +84,7 @@ const NAV_ITEMS = [
         label: "Users",
         to: "/users",
         icon: Users,
+        iconKey: "Users",
         requireRole: "superadmin",
       },
     ],
@@ -71,6 +96,7 @@ const NAV_ITEMS = [
         label: "Settings",
         to: "/settings",
         icon: Settings,
+        iconKey: "Settings",
         requireRole: null,
       },
     ],
@@ -83,7 +109,7 @@ export function AppSidebar() {
 
   if (loading) return null; // Or loading skeleton
 
-  const getRoleRank = (role) =>
+  const getRoleRank = (role: string | undefined | null) =>
     role === "superadmin" ? 3 : role === "owner" ? 2 : 1;
 
   return (
@@ -100,8 +126,11 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const colorClass =
+                    ICON_COLORS[item.iconKey || ""] || "text-gray-500";
+                  const isActive = location.pathname === item.to;
                   // If item has requireRole, check if user has at least that role's privilege
-                  // superadmin always sees all, owner sees items with requireRole null or "owner"
                   if (
                     item.requireRole &&
                     getRoleRank(user?.role) < getRoleRank(item.requireRole)
@@ -109,9 +138,9 @@ export function AppSidebar() {
                     return (
                       <SidebarMenuItem key={item.to}>
                         <SidebarMenuButton disabled>
-                          <item.icon className="opacity-60" />
+                          <Icon className={colorClass + " opacity-60"} />
                           <span className="opacity-60">{item.label}</span>
-                          <Lock className="w-4 h-4 ml-auto text-gray-300" />
+                          <Lock className={ICON_COLORS.Lock + " w-4 h-4 ml-auto"} />
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     );
@@ -120,10 +149,10 @@ export function AppSidebar() {
                     <SidebarMenuItem key={item.to}>
                       <SidebarMenuButton
                         asChild
-                        isActive={location.pathname === item.to}
+                        isActive={isActive}
                       >
                         <a href={item.to}>
-                          <item.icon />
+                          <Icon className={colorClass} />
                           <span>{item.label}</span>
                         </a>
                       </SidebarMenuButton>
