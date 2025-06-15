@@ -37,6 +37,9 @@ export default function AppSuperadminSidebar() {
     if (state.employeeAssignment) allowedIdx = 5;
   }
 
+  // Debug: log allowedIdx and current wizard state
+  console.log("[Sidebar DEBUG] allowedIdx:", allowedIdx, "wizard state:", state);
+
   return (
     <aside
       className="w-64 min-h-screen flex flex-col z-10 bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-blue-950 dark:via-background dark:to-indigo-900 border-r border-border shadow-xl transition-colors duration-300"
@@ -65,6 +68,9 @@ export default function AppSuperadminSidebar() {
           if (idx === 4 && state.user?.role === "owner") disabled = true;
           if (idx > allowedIdx) disabled = true;
 
+          // Debug: log each step and its disabled state
+          console.log("[Sidebar DEBUG] Step:", step.label, "idx:", idx, "disabled:", disabled);
+
           const isActive = pathname === step.url;
           return (
             <NavLink
@@ -81,12 +87,11 @@ export default function AppSuperadminSidebar() {
                     : "hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-950 dark:hover:text-blue-200",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/30",
                   "duration-200",
-                  disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"
+                  disabled ? "opacity-40 cursor-not-allowed pointer-events-none" : "cursor-pointer"
                 ].join(" ")
               }
               style={{
-                marginBottom: idx === steps.length - 1 ? 0 : "6px",
-                pointerEvents: disabled ? "none" : undefined, // prevents navigation for disabled, but link always remains a NavLink
+                marginBottom: idx === steps.length - 1 ? 0 : "6px"
               }}
             >
               <span
