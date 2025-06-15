@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import OwnerDashboard from "./pages/OwnerDashboard";
 import { WizardProvider } from "@/context/WizardContext";
 import AppSuperadminSidebar from "@/components/superadmin-wizard/AppSuperadminSidebar";
++import Navbar from "@/components/Navbar";
 
 // Wizard step pages
 import CreateUser from "@/pages/superadmin-wizard/CreateUser";
@@ -24,7 +25,7 @@ const SuperadminWizardLayout = ({ children }: { children: React.ReactNode }) => 
   <WizardProvider>
     <div className="flex min-h-screen w-full">
       <AppSuperadminSidebar />
-      <main className="flex-1 w-full px-6 py-10 bg-background flex flex-col items-center">
+      <main className="flex-1 w-full px-6 py-10 bg-gray-50 flex flex-col items-center">
         {children}
       </main>
     </div>
@@ -37,6 +38,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <BrowserRouter>
++        <Navbar />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/owner-dashboard" element={<OwnerDashboard />} />
