@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,51 +25,110 @@ import EmployeesPage from "@/pages/Employees";
 
 const queryClient = new QueryClient();
 
+const AppRoutes = () => {
+  return (
+    <Routes>
+      {/* Public routes */}
+      <Route path="/auth" element={<AuthPage />} />
+      <Route path="/" element={<Index />} />
+
+      {/* Protected routes */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <UnifiedLayout>
+              <DashboardPage />
+            </UnifiedLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/stations"
+        element={
+          <ProtectedRoute>
+            <UnifiedLayout>
+              <StationsPage />
+            </UnifiedLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sales"
+        element={
+          <ProtectedRoute>
+            <UnifiedLayout>
+              <SalesPage />
+            </UnifiedLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/data-entry"
+        element={
+          <ProtectedRoute>
+            <UnifiedLayout>
+              <DataEntryPage />
+            </UnifiedLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/users"
+        element={
+          <ProtectedRoute>
+            <UnifiedLayout>
+              <UsersPage />
+            </UnifiedLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <UnifiedLayout>
+              <SettingsPage />
+            </UnifiedLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employees"
+        element={
+          <ProtectedRoute>
+            <UnifiedLayout>
+              <EmployeesPage />
+            </UnifiedLayout>
+          </ProtectedRoute>
+        }
+      />
+      {/* Redirect / to /dashboard if logged in */}
+      <Route
+        path="*"
+        element={
+          <ProtectedRoute>
+            <UnifiedLayout>
+              <NotFound />
+            </UnifiedLayout>
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
+  );
+};
+
 // Move App to a function so we can use hooks for conditional rendering/layout
 const App = () => {
   // useAuth should work at root level because <AuthProvider> wraps the app
-  const { user, loading } = useAuth();
-
-  // Show a global navbar on all routes
+  // (No longer needed for route logic due to ProtectedRoute usage)
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
           <BrowserRouter>
             <Navbar />
-            <Routes>
-              {/* Auth/Login / Signup Page */}
-              <Route path="/auth" element={<AuthPage />} />
-
-              {/* Unauthenticated: only root landing page */}
-              {!user && !loading && (
-                <>
-                  <Route path="/" element={<Index />} />
-                  <Route path="*" element={<Navigate to="/" />} />
-                </>
-              )}
-              {/* Authenticated: Protected App */}
-              {user && (
-                <Route
-                  path="*"
-                  element={
-                    <UnifiedLayout>
-                      <Routes>
-                        <Route path="/" element={<Navigate to="/dashboard" />} />
-                        <Route path="/dashboard" element={<DashboardPage />} />
-                        <Route path="/stations" element={<StationsPage />} />
-                        <Route path="/sales" element={<SalesPage />} />
-                        <Route path="/data-entry" element={<DataEntryPage />} />
-                        <Route path="/users" element={<UsersPage />} />
-                        <Route path="/settings" element={<SettingsPage />} />
-                        <Route path="/employees" element={<EmployeesPage />} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </UnifiedLayout>
-                  }
-                />
-              )}
-            </Routes>
+            <AppRoutes />
           </BrowserRouter>
         </AuthProvider>
       </TooltipProvider>
