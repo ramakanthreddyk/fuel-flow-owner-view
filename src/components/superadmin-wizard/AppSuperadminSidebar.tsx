@@ -32,7 +32,7 @@ export default function AppSuperadminSidebar() {
     ) allowedIdx = 5;
   } else if (state.user?.role === "employee") {
     if (state.user) allowedIdx = 4;
-    if (state.assignedStation) allowedIdx = 5;
+    if (state.employeeAssignment) allowedIdx = 5;
   }
   // Employee disables all but 1, 4, 5; Owner disables 4 only for employee flow
   return (
@@ -75,3 +75,4 @@ export default function AppSuperadminSidebar() {
     </aside>
   );
 }
+
