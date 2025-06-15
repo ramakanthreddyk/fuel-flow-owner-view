@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/context/UserContext";
@@ -66,7 +65,6 @@ export default function SalesPage() {
       const res = await fetch(`/api/sales?${qs}`).then(r=>r.json());
       return res; // { results: SaleRow[], total: number }
     },
-    keepPreviousData: true,
   });
 
   function handleSort(field: string) {
@@ -112,4 +110,3 @@ export default function SalesPage() {
     </div>
   );
 }
-

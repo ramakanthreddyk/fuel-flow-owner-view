@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Table,
@@ -119,7 +118,6 @@ export default function SalesTable({
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
-                asChild
                 className="cursor-pointer"
                 onClick={() => page>1 && onPageChange(page-1)}
                 aria-disabled={page<=1}
@@ -138,7 +136,6 @@ export default function SalesTable({
             ))}
             <PaginationItem>
               <PaginationNext
-                asChild
                 className="cursor-pointer"
                 onClick={() => page<lastPage && onPageChange(page+1)}
                 aria-disabled={page>=lastPage}
