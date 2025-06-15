@@ -1,4 +1,3 @@
-
 import express from "express";
 import usersRoutes from "./routes/users";
 import stationsRoutes from "./routes/stations";
@@ -8,6 +7,7 @@ import employeesRoutes from "./routes/employees";
 import summaryRoutes from "./routes/summary";
 import dashboardRoutes from "./routes/dashboard";
 import authRoutes from "./routes/auth";
+import manualReadingsRoutes from "./routes/manual-readings";
 
 // --- Placeholder routes below ---
 import tenderEntriesRoutes from "./routes/tender-entries";
@@ -38,6 +38,7 @@ app.use("/api/ocr-readings", ocrReadingsRoutes);
 app.use("/api/plans", plansRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/uploads", uploadsRoutes);
+app.use("/api/manual-readings", manualReadingsRoutes);
 
 app.get("/", (_req, res) => res.send("Superadmin Wizard API is running!"));
 
@@ -54,4 +55,3 @@ app.use((err: any, _req: any, res: any, _next: any) => {
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`API listening on http://localhost:${PORT}`));
-
