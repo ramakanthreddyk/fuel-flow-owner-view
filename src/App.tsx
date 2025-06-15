@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +14,7 @@ import DataEntryPage from "@/pages/DataEntry";
 import UsersPage from "@/pages/Users";
 import SettingsPage from "@/pages/Settings";
 import NotFound from "./pages/NotFound";
+import EmployeesPage from "@/pages/Employees";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +32,7 @@ const App = () => (
               <Route path="/data-entry" element={<DataEntryPage />} />
               <Route path="/users" element={<UsersPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/employees" element={<EmployeesPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </UnifiedLayout>

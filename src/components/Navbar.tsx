@@ -11,6 +11,7 @@ const navItems = [
   { label: "Sales", to: "/sales" },
   { label: "Data Entry", to: "/data-entry" },
   { label: "Users", to: "/users" },
+  { label: "Employees", to: "/employees" },
   { label: "Settings", to: "/settings" },
 ];
 

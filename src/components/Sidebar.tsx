@@ -20,6 +20,7 @@ const navSections = [
       { label: "Stations", to: "/stations", icon: Building, iconClass: "text-indigo-500", requireRole: "superadmin" },
       { label: "Sales", to: "/sales", icon: ShoppingCart, iconClass: "text-green-500", requireRole: "superadmin" },
       { label: "Data Entry", to: "/data-entry", icon: FileEdit, iconClass: "text-pink-500", requireRole: "superadmin" },
+      { label: "Employees", to: "/employees", icon: Users, iconClass: "text-teal-500", requireRole: "superadmin" },
     ],
   },
   {
