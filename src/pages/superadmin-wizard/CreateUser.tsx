@@ -1,14 +1,21 @@
 
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import { Mail, Lock, User as UserIcon, BadgeCheck, BadgeAlert } from "lucide-react";
-import RoleSelect from "./RoleSelect";
-import ProgressBar from "./ProgressBar";
+import { User as UserIcon, Mail, Lock, BadgeAlert } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { z } from "zod";
+import { WizardContext } from "@/context/WizardContext";
+
+const schema = z.object({
+  name: z.string().min(2, "Username is required"),
+  email: z.string().email("Email format invalid"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  role: z.enum(["owner", "employee"]),
+});
 
 const initialForm = {
   name: "",
@@ -16,24 +23,27 @@ const initialForm = {
   password: "",
   role: "owner",
 };
-
-function validate(form: typeof initialForm) {
-  const errors: { [key: string]: string } = {};
-  if (!form.name.trim()) errors.name = "Username is required";
-  if (!form.email.match(/^[^@\s]+@[^@\s]+\.[^@\s]+$/)) errors.email = "Email format invalid";
-  if (form.password.length < 6) errors.password = "Password must be at least 6 characters";
-  return errors;
-}
+type FormState = typeof initialForm;
 
 export default function CreateUser() {
-  const [form, setForm] = useState(initialForm);
-  const [touched, setTouched] = useState<{ [k: string]: boolean }>({});
+  const [form, setForm] = useState<FormState>(initialForm);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
-  const errors = validate(form);
-  const formValid = Object.keys(errors).length === 0;
+  const wizardCtx = useContext(WizardContext);
 
+  // Validate form with zod
+  const validation = schema.safeParse(form);
+  const errors: Record<string, string> = {};
+  if (!validation.success) {
+    for (const err of validation.error.issues) {
+      errors[err.path[0]] = err.message;
+    }
+  }
+  const formValid = validation.success;
+
+  // Handlers
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
@@ -49,14 +59,19 @@ export default function CreateUser() {
     if (!formValid) return;
     setLoading(true);
 
-    // Simulated API
     await new Promise((r) => setTimeout(r, 700));
     setSuccess(true);
+    // Update wizard context to mark step as completed
+    wizardCtx?.setCompletedStep("user");
     toast({
       title: "User staged!",
       description: `User: ${form.name}, Email: ${form.email}, Role: ${form.role}`,
+      variant: "default",
     });
     setLoading(false);
+    // Mock function
+    console.log("User staged:", form);
+    // Optionally you could navigate to next step here
   }
 
   function handleCancel() {
@@ -64,40 +79,33 @@ export default function CreateUser() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-3 py-10">
-      {/* Main Content: Centered Card */}
-      <div className="w-full max-w-xl mx-auto">
-        <ProgressBar step={1} total={5} />
-        {/* Step indicator */}
-        <div className="text-gray-400 text-xs font-normal mt-4 mb-2 text-right">Step 1 of 5</div>
-        <Card className="border border-gray-200 bg-white shadow-lg rounded-xl p-8 flex flex-col gap-7">
-          {/* Section Header */}
-          <div className="flex items-center gap-3 mb-1">
-            <span className="bg-gray-100 p-3 rounded-full shadow-sm flex items-center justify-center">
-              <UserIcon size={26} className="text-blue-500" />
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-3 py-10">
+      <div className="w-full max-w-xl md:max-w-[700px] mx-auto flex flex-col gap-0">
+        {/* Step info */}
+        <div className="text-gray-500 text-sm font-normal mt-2 mb-2 text-right">Step 1 of 5</div>
+        <Card className="border border-gray-200 bg-white shadow-md rounded-xl p-8 md:p-10 flex flex-col gap-7">
+          {/* Heading Section */}
+          <div className="flex items-center gap-4 pb-3 mb-1 border-b border-gray-100">
+            <span className="bg-blue-50 p-3 rounded-full flex items-center justify-center">
+              <UserIcon size={26} className="text-blue-600" />
             </span>
             <div>
-              <h2 className="text-xl font-semibold text-gray-800 mb-0.5">
-                Create a User Account
-              </h2>
-              <p className="text-gray-500 text-sm font-normal">
-                Begin by creating your main account. Owners manage everything; employees have limited access.
+              <h2 className="text-2xl font-semibold text-gray-800 mb-1">Create a User Account</h2>
+              <p className="text-gray-500 text-base font-normal">
+                Begin by creating your main account. Owners can manage setup; employees have limited access.
               </p>
             </div>
           </div>
-          {/* Success Banner */}
           {success && (
-            <div className="rounded bg-green-50 px-4 py-3 text-green-900 border border-green-200 mb-3 flex items-center gap-2 shadow-sm text-sm">
-              <BadgeCheck className="mr-1.5 text-green-500" />
+            <div className="rounded bg-blue-50 px-4 py-3 text-blue-900 border border-blue-200 mb-3 flex items-center gap-2 shadow-sm text-sm">
               User staged successfully. Proceed to next step!
             </div>
           )}
-          {/* User Form */}
-          <form className="flex flex-col gap-5" onSubmit={handleSubmit} autoComplete="off">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <form className="flex flex-col gap-6" onSubmit={handleSubmit} autoComplete="off">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Username */}
               <div>
-                <Label htmlFor="name" className="mb-1 font-medium text-gray-700">Username</Label>
+                <Label htmlFor="name" className="mb-1 text-gray-800 font-medium">Username</Label>
                 <div className="relative">
                   <Input
                     id="name"
@@ -110,7 +118,7 @@ export default function CreateUser() {
                     onBlur={handleBlur}
                     disabled={loading}
                     autoComplete="username"
-                    className={`pl-9 ${errors.name && touched.name ? "border-red-400 ring-1 ring-red-200" : ""}`}
+                    className={`w-full border border-gray-300 rounded-md p-2 text-sm ${errors.name && touched.name ? "border-red-400 ring-1 ring-red-200" : ""}`}
                   />
                   <UserIcon className="absolute left-2 top-2.5 text-gray-300 pointer-events-none" size={16} />
                 </div>
@@ -122,7 +130,7 @@ export default function CreateUser() {
               </div>
               {/* Email */}
               <div>
-                <Label htmlFor="email" className="mb-1 font-medium text-gray-700">Email</Label>
+                <Label htmlFor="email" className="mb-1 text-gray-800 font-medium">Email</Label>
                 <div className="relative">
                   <Input
                     id="email"
@@ -135,7 +143,7 @@ export default function CreateUser() {
                     onBlur={handleBlur}
                     disabled={loading}
                     autoComplete="email"
-                    className={`pl-9 ${errors.email && touched.email ? "border-red-400 ring-1 ring-red-200" : ""}`}
+                    className={`w-full border border-gray-300 rounded-md p-2 text-sm pl-9 ${errors.email && touched.email ? "border-red-400 ring-1 ring-red-200" : ""}`}
                   />
                   <Mail className="absolute left-2 top-2.5 text-gray-300 pointer-events-none" size={15} />
                 </div>
@@ -147,8 +155,8 @@ export default function CreateUser() {
               </div>
             </div>
             {/* Password */}
-            <div>
-              <Label htmlFor="password" className="mb-1 font-medium text-gray-700">Password</Label>
+            <div className="md:col-span-2">
+              <Label htmlFor="password" className="mb-1 text-gray-800 font-medium">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -162,7 +170,7 @@ export default function CreateUser() {
                   disabled={loading}
                   autoComplete="new-password"
                   minLength={6}
-                  className={`pl-9 ${errors.password && touched.password ? "border-red-400 ring-1 ring-red-200" : ""}`}
+                  className={`w-full border border-gray-300 rounded-md p-2 text-sm pl-9 ${errors.password && touched.password ? "border-red-400 ring-1 ring-red-200" : ""}`}
                 />
                 <Lock className="absolute left-2 top-2.5 text-gray-300 pointer-events-none" size={15} />
               </div>
@@ -173,29 +181,38 @@ export default function CreateUser() {
               )}
             </div>
             {/* Role */}
-            <div>
-              <Label htmlFor="role" className="mb-1 font-medium text-gray-700 flex items-center gap-2">
+            <div className="md:col-span-2">
+              <Label htmlFor="role" className="mb-1 text-gray-800 font-medium flex items-center gap-2">
                 Role
-                <span
-                  className="ml-1 inline-flex text-blue-600 cursor-pointer rounded-full bg-blue-50 p-1"
-                  title="Role determines user permissions. Owners manage setup; Employees have limited access."
-                >?</span>
+                <span title="Role determines user permissions. Owners manage setup; Employees have limited access." className="ml-1 cursor-pointer text-blue-600 text-xs">?</span>
               </Label>
-              <RoleSelect
+              <select
                 id="role"
+                name="role"
                 value={form.role}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 disabled={loading}
-              />
+                className="w-full border border-gray-300 rounded-md p-2 text-sm"
+              >
+                <option value="owner">👑 Owner</option>
+                <option value="employee">👷 Employee</option>
+              </select>
             </div>
+            {/* Navigation Actions */}
             <div className="flex justify-between items-center mt-2">
-              <Button variant="ghost" type="button" onClick={handleCancel} className="text-gray-500 hover:bg-gray-100">
+              <Button
+                variant="ghost"
+                type="button"
+                onClick={handleCancel}
+                className="text-gray-500 hover:bg-gray-100"
+              >
                 ← Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={loading || !formValid}
-                className="bg-blue-600 text-white px-5 py-2 rounded font-semibold hover:bg-blue-700 transition"
+                className="bg-blue-600 text-white rounded-md px-7 py-2 font-semibold hover:bg-blue-700"
               >
                 {loading ? "Creating..." : "Next →"}
               </Button>
