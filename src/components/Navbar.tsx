@@ -1,7 +1,7 @@
 
 import { Link, useLocation } from "react-router-dom";
 import React, { useState } from "react";
-import { Menu } from "lucide-react";
+import { Menu, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -57,7 +57,8 @@ const Navbar = () => {
         <div className="flex-0 flex w-full justify-end md:w-auto mt-4 md:mt-0 gap-2">
           {loggedIn ? (
             <Button variant="outline" size="sm" onClick={handleLogout}>
-              Logout
+              <LogOut className="mr-2" />
+              <span className="sr-only">Logout</span>
             </Button>
           ) : (
             <Button variant="default" size="sm" onClick={handleLogin}>
@@ -97,10 +98,11 @@ const Navbar = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="mt-2"
+                className="mt-2 flex items-center"
                 onClick={handleLogout}
               >
-                Logout
+                <LogOut className="mr-2" />
+                <span className="sr-only">Logout</span>
               </Button>
             ) : (
               <Button
