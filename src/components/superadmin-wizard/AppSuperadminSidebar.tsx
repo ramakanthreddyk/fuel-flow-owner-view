@@ -55,6 +55,7 @@ export default function AppSuperadminSidebar() {
       {/* Steps Navigation */}
       <nav className="flex-1 px-4 pt-7 flex flex-col gap-1">
         {steps.map((step, idx) => {
+          // Determine disabled state as before:
           let disabled = false;
           if (
             (idx === 1 || idx === 2 || idx === 3) &&
@@ -68,24 +69,24 @@ export default function AppSuperadminSidebar() {
           return (
             <NavLink
               key={step.url}
-              to={disabled ? "#" : step.url}
+              to={step.url}
               tabIndex={disabled ? -1 : 0}
               aria-disabled={disabled}
               className={({ isActive: navActive }) =>
                 [
                   "flex items-center gap-3 px-5 py-3 rounded-xl text-lg transition-colors relative group shadow-sm",
                   "font-medium tracking-wide select-none",
-                  disabled
-                    ? "pointer-events-none opacity-30"
-                    : navActive || isActive
+                  navActive || isActive
                     ? "bg-gradient-to-r from-blue-100 to-indigo-200 dark:from-blue-800 dark:to-blue-600 text-blue-700 dark:text-blue-100 shadow-lg"
                     : "hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-950 dark:hover:text-blue-200",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/30",
-                  "duration-200"
+                  "duration-200",
+                  disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"
                 ].join(" ")
               }
               style={{
                 marginBottom: idx === steps.length - 1 ? 0 : "6px",
+                pointerEvents: disabled ? "none" : undefined, // prevents navigation for disabled, but link always remains a NavLink
               }}
             >
               <span
@@ -99,7 +100,7 @@ export default function AppSuperadminSidebar() {
               </span>
               <span className="truncate">{step.label}</span>
               {/* Side accent bar for active state */}
-              {pathname === step.url && !disabled && (
+              {isActive && !disabled && (
                 <span className="absolute left-0 top-2 h-2/3 w-1.5 bg-blue-400 dark:bg-blue-300 rounded-r-2xl shadow-md transition-all duration-200" />
               )}
             </NavLink>
