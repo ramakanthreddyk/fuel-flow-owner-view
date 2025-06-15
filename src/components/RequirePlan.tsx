@@ -9,8 +9,9 @@ interface RequirePlanProps {
 }
 
 export default function RequirePlan({ plans, children, fallback = null }: RequirePlanProps) {
-  const user = useUser();
-  if (plans.includes(user.plan)) {
+  const { user, loading } = useUser();
+  if (loading) return null;
+  if (user && plans.includes(user.plan)) {
     return <>{children}</>;
   }
   return fallback || (

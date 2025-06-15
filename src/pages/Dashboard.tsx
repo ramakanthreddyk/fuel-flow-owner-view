@@ -5,7 +5,17 @@ import { Building, Fuel, ShoppingCart, Users, FileEdit, CircleDollarSign, Settin
 import RequirePlan from "@/components/RequirePlan";
 
 export default function DashboardPage() {
-  const user = useUser();
+  const { user, loading, error } = useUser();
+
+  if (loading) {
+    return <div className="p-8 text-gray-600">Loading...</div>;
+  }
+  if (error) {
+    return <div className="p-8 text-red-500">Error: {error}</div>;
+  }
+  if (!user) {
+    return <div className="p-8 text-gray-600">No user data found.</div>;
+  }
 
   return (
     <div className="max-w-5xl mx-auto">

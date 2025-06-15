@@ -34,8 +34,10 @@ const navSections = [
 ];
 
 const Sidebar = () => {
-  const user = useUser();
+  const { user, loading } = useUser();
   const location = useLocation();
+
+  if (loading) return null;
 
   return (
     <aside className="bg-white border-r w-60 min-h-screen py-6 px-0 flex flex-col shadow-sm">
@@ -51,7 +53,7 @@ const Sidebar = () => {
             <div className="flex flex-col gap-0.5">
               {section.items.map((item) => {
                 // Only restrict items that specify requireRole
-                if (item.requireRole && user.role !== item.requireRole) {
+                if (item.requireRole && user && user.role !== item.requireRole) {
                   return (
                     <div
                       key={item.to}
@@ -96,4 +98,3 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
-
