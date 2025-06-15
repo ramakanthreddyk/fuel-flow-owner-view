@@ -41,18 +41,14 @@ export function useUser(): UseUserResult {
       .from("profiles")
       .select("id, name, email, role")
       .eq("id", authUser.id)
-      .single()
+      .maybeSingle()
       .then(({ data, error }) => {
-        if (error || !data) {
-          setProfile({
-            // Fallback to authUser (should not usually happen)
-            name: authUser.email || "Unknown",
-            email: authUser.email,
-            id: authUser.id,
-            role: "owner",
-            plan: "free",
-          });
-          setError(error ? error.message : "Profile not found");
+        if (error) {
+          setProfile(null);
+          setError(error.message);
+        } else if (!data) {
+          setProfile(null);
+          setError("No profile found for authenticated user.");
         } else {
           // TODO: For "plan", assume "premium" if user is superadmin, else "free". Modify logic if plan becomes available.
           setProfile({
