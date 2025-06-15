@@ -1,3 +1,4 @@
+
 import { useUser } from "@/context/UserContext";
 import RequireRole from "@/components/RequireRole";
 import { useQuery } from "@tanstack/react-query";
@@ -28,7 +29,7 @@ export default function StationsPage() {
     <div>
       <h1 className="text-3xl font-bold mb-4">Stations</h1>
       {/* Hide or show controls/buttons based on role */}
-      <RequireRole roles={["owner", "superadmin"]}>
+      <RequireRole roles={["superadmin"]}>
         <AddStationDialog />
       </RequireRole>
       <div className="p-4 border rounded bg-white mb-8">
@@ -58,3 +59,4 @@ export default function StationsPage() {
     </div>
   );
 }
+
