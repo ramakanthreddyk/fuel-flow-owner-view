@@ -35,7 +35,7 @@ serve(async (req) => {
     });
 
     if (authError || !userData?.user) {
-      return new Response(JSON.stringify({ error: authError?.message || "Failed to create auth user" }), {
+      return new Response(JSON.stringify({ error: authError?.message || "Failed to create auth user", details: authError }), {
         status: 400,
         headers: corsHeaders,
       });
@@ -63,7 +63,16 @@ serve(async (req) => {
         .insert([{ id: userId, name, email, password }]);
 
       if (userInsertError) {
-        return new Response(JSON.stringify({ error: "User DB insert failed", details: userInsertError.message }), {
+        // Enhanced error details:
+        return new Response(JSON.stringify({
+          error: "User DB insert failed",
+          details: userInsertError.message,
+          code: userInsertError.code,
+          hint: userInsertError.hint,
+          constraint: userInsertError.constraint,
+          column: userInsertError.column,
+          table: userInsertError.table,
+        }), {
           status: 400,
           headers: corsHeaders,
         });
@@ -81,7 +90,12 @@ serve(async (req) => {
     );
 
   } catch (err) {
-    return new Response(JSON.stringify({ error: "Server error", details: err.message }), {
+    return new Response(JSON.stringify({
+      error: "Server error",
+      details: err && typeof err === "object" ? (
+        typeof err.message === "string" ? err.message : JSON.stringify(err)
+      ) : String(err)
+    }), {
       status: 500,
       headers: corsHeaders,
     });
