@@ -2,8 +2,10 @@
 import React from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { useLocation } from "react-router-dom";
 
 export default function UnifiedLayout({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
   // Wrap in SidebarProvider for sidebar state and style
   return (
     <SidebarProvider>
@@ -14,7 +16,13 @@ export default function UnifiedLayout({ children }: { children: React.ReactNode 
           <div className="mb-2 block md:hidden">
             <SidebarTrigger />
           </div>
-          {children}
+          {/* Page transition wrapper */}
+          <div
+            key={location.pathname}
+            className="animate-fade-in transition-all duration-300"
+          >
+            {children}
+          </div>
         </main>
       </div>
     </SidebarProvider>
