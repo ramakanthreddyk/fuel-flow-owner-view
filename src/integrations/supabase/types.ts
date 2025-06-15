@@ -271,6 +271,7 @@ export type Database = {
       stations: {
         Row: {
           address: string | null
+          city: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -279,6 +280,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          city?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -287,6 +289,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          city?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
