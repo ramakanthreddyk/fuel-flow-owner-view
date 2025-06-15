@@ -13,20 +13,20 @@ serve(async (req) => {
 
   try {
     const { name, email, password, role = "employee" } = await req.json();
+
     if (!name || !email || !password) {
-      return new Response(JSON.stringify({ error: "Missing required fields" }), {
+      return new Response(JSON.stringify({ error: "Missing required fields: name, email, or password" }), {
         status: 400,
         headers: corsHeaders,
       });
     }
 
-    // Instantiate admin client with Service Role Key
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // 1. Create Auth User (in auth.users)
+    // 1. Create user in auth.users
     const { data: userData, error: authError } = await supabase.auth.admin.createUser({
       email,
       password,
@@ -40,74 +40,57 @@ serve(async (req) => {
       });
     }
 
-    // 2. Check if user is already in public.users
-    const { user } = userData;
-    const { data: existingUser, error: fetchUserError } = await supabase
-      .from("users")
-      .select("id, name, email")
-      .eq("id", user.id)
-      .maybeSingle();
+    const userId = userData.user.id;
 
-    if (fetchUserError) {
-      return new Response(JSON.stringify({ error: fetchUserError.message }), {
+    // 2. Insert into users table (application-specific user record)
+    const { error: userInsertError } = await supabase
+      .from("users")
+      .insert([{ id: userId, name, email, password }]);
+
+    if (userInsertError) {
+      return new Response(JSON.stringify({ error: "User DB insert failed", details: userInsertError.message }), {
         status: 400,
         headers: corsHeaders,
       });
     }
 
-    // Helper to upsert user_roles
-    async function ensureUserRole(userId: string, roleVal: string) {
-      // Check if user_role row exists for this user and role
-      const { data: existRoleRow, error: roleReadErr } = await supabase
+    // 3. Ensure user role is set AFTER user insert is confirmed
+    const ensureUserRole = async (uid: string, roleVal: string) => {
+      const { data: existingRole, error: readErr } = await supabase
         .from("user_roles")
         .select("id")
-        .eq("user_id", userId)
+        .eq("user_id", uid)
         .eq("role", roleVal)
         .maybeSingle();
-      if (roleReadErr) return { error: roleReadErr };
-      if (!existRoleRow) {
-        // Insert new user_role
-        const { error: insErr } = await supabase
+
+      if (readErr) return { error: `Error reading user_roles: ${readErr.message}` };
+
+      if (!existingRole) {
+        const { error: insertErr } = await supabase
           .from("user_roles")
-          .insert([{ user_id: userId, role: roleVal }]);
-        if (insErr) return { error: insErr };
+          .insert([{ user_id: uid, role: roleVal }]);
+
+        if (insertErr) return { error: `Role insert failed: ${insertErr.message}` };
       }
+
       return { ok: true };
-    }
+    };
 
-    if (existingUser) {
-      // User already exists in the users table. Ensure correct role exists.
-      await ensureUserRole(existingUser.id, role);
-      return new Response(
-        JSON.stringify({ id: existingUser.id, name: existingUser.name, email: existingUser.email, role, message: "User already exists." }),
-        { status: 200, headers: corsHeaders }
-      );
-    }
-
-    // 3. Add entry to public.users (trigger will handle user_roles, but we override it right after)
-    const { data: appUser, error: userTableError } = await supabase
-      .from("users")
-      .insert([{ id: user.id, name, email, password }])
-      .select("id, name, email")
-      .maybeSingle();
-
-    if (userTableError || !appUser) {
-      return new Response(JSON.stringify({ error: userTableError?.message || "User insert failed" }), {
+    const roleResult = await ensureUserRole(userId, role);
+    if ("error" in roleResult) {
+      return new Response(JSON.stringify({ error: roleResult.error }), {
         status: 400,
         headers: corsHeaders,
       });
     }
 
-    // 4. Insert intended role (overriding default if needed)
-    await ensureUserRole(appUser.id, role);
-
     return new Response(
-      JSON.stringify({ id: appUser.id, name: appUser.name, email: appUser.email, role }),
-      { headers: corsHeaders }
+      JSON.stringify({ id: userId, name, email, role, message: "User created successfully" }),
+      { status: 200, headers: corsHeaders }
     );
+
   } catch (err) {
-    // Catch-all error
-    return new Response(JSON.stringify({ error: err.message }), {
+    return new Response(JSON.stringify({ error: "Server error", details: err.message }), {
       status: 500,
       headers: corsHeaders,
     });
