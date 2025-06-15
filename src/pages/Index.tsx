@@ -1,10 +1,18 @@
 
-// Landing page with a CTA to dashboard
-
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    // Automatically redirect authenticated users to dashboard
+    if (!loading && user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -18,7 +26,7 @@ const Index = () => {
           </p>
         </div>
         <button
-          onClick={() => navigate("/owner-dashboard")}
+          onClick={() => navigate("/dashboard")}
           className="bg-primary text-primary-foreground px-7 py-3 rounded-lg font-semibold text-lg shadow hover:bg-primary/90 transition"
         >
           Go to Dashboard
