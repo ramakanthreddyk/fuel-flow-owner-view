@@ -25,6 +25,12 @@ interface EditUserDialogProps {
   onUserEdited: (updated: User) => void;
 }
 
+const ROLE_LABELS: Record<RoleOption, string> = {
+  superadmin: "Superadmin",
+  owner: "Owner",
+  employee: "Employee",
+};
+
 export default function EditUserDialog({ user, onClose, onUserEdited }: EditUserDialogProps) {
   const [form, setForm] = useState<User>(user);
   const [loading, setLoading] = useState(false);
@@ -82,14 +88,20 @@ export default function EditUserDialog({ user, onClose, onUserEdited }: EditUser
           </div>
           <div>
             <label className="block mb-1 text-sm">Role</label>
-            <Select value={form.role} onValueChange={val => setForm(f => ({ ...f, role: val as RoleOption }))} disabled={loading}>
+            <Select
+              value={form.role}
+              onValueChange={val => setForm(f => ({ ...f, role: val as RoleOption }))}
+              disabled={loading}
+            >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue>
+                  {ROLE_LABELS[form.role]}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="superadmin">Superadmin</SelectItem>
-                <SelectItem value="owner">Owner</SelectItem>
-                <SelectItem value="employee">Employee</SelectItem>
+                <SelectItem value="superadmin">{ROLE_LABELS.superadmin}</SelectItem>
+                <SelectItem value="owner">{ROLE_LABELS.owner}</SelectItem>
+                <SelectItem value="employee">{ROLE_LABELS.employee}</SelectItem>
               </SelectContent>
             </Select>
           </div>
