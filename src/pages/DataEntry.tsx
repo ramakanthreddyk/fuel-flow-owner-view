@@ -21,6 +21,7 @@ import RequireRole from "@/components/RequireRole";
 import { useUser } from "@/context/UserContext";
 import ManualEntryPage from "./data-entry/ManualEntryPage";
 import OcrEntryForm from "./data-entry/OcrEntryForm";
+import TenderEntryForm from "./data-entry/TenderEntryForm";
 
 // New: Util hook to fetch user's assigned stations
 function useAssignedStations(userId?: string) {
@@ -487,7 +488,7 @@ export default function DataEntryPage() {
               <TabsContent value="ocr"><OcrEntryForm /></TabsContent>
               <TabsContent value="manual"><ManualEntryPage /></TabsContent>
               <TabsContent value="tender">
-                <div className="text-muted-foreground text-center py-10">Tender Entry Form Coming Soon</div>
+                <TenderEntryForm />
               </TabsContent>
               <TabsContent value="refill">
                 <div className="text-muted-foreground text-center py-10">Tank Refill Form Coming Soon</div>
