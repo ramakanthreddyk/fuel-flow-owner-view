@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Dialog,
@@ -44,6 +43,18 @@ export function AddUserDialog({ onCreated, onUserCreated }: AddUserDialogProps) 
     },
   });
 
+  // Add a helper to retry fetching just-created user, up to 3 tries (750ms total)
+  async function ensureUserInDb(userId: string, retries = 3, delayMs = 250): Promise<boolean> {
+    for (let i = 0; i < retries; i++) {
+      const { data, error } = await import("@/integrations/supabase/client").then(mod =>
+        mod.supabase.from("users").select("id").eq("id", userId).maybeSingle()
+      );
+      if (data) return true;
+      await new Promise(res => setTimeout(res, delayMs));
+    }
+    return false;
+  }
+
   async function onSubmit(values: { name: string; email: string; password: string; role: string }) {
     setLoading(true);
     try {
@@ -58,6 +69,15 @@ export function AddUserDialog({ onCreated, onUserCreated }: AddUserDialogProps) 
       if (insertUserErr || !insertUser) {
         throw new Error(insertUserErr?.message || "User creation failed");
       }
+
+      // Confirm user exists before inserting role (helps avoid 409 race condition)
+      const userExists = await ensureUserInDb(insertUser.id);
+      if (!userExists) {
+        throw new Error(
+          "User insert found, but user record not yet available. Please try again."
+        );
+      }
+
       // Assign role
       const { error: insertRoleErr } = await import("@/integrations/supabase/client").then(mod =>
         mod.supabase
@@ -80,7 +100,7 @@ export function AddUserDialog({ onCreated, onUserCreated }: AddUserDialogProps) 
         name: insertUser.name,
         email: values.email,
         role: values.role as RoleOption,
-        password: values.password, // Only for further form mutation/use; never store/reveal password
+        password: values.password,
       });
       onCreated?.();
     } catch (err: any) {
