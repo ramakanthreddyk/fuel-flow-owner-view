@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -26,7 +25,8 @@ const OwnerDashboard = () => {
         type === "success"
           ? "Your export was generated successfully."
           : "Something went wrong during export.",
-      variant: type,
+      // Use the allowed variants: "default" or "destructive"
+      variant: type === "success" ? "default" : "destructive",
     });
 
   // Only allow owners

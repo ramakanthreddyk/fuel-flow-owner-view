@@ -19,14 +19,15 @@ const NOZZLE_TYPES = [
 
 const StepAddNozzles: React.FC<Props> = ({ pumps, defaultValues, onNext, onBack }) => {
   const [nozzles, setNozzles] = useState<{ pump_idx: number; label: string; fuel_type: "petrol"|"diesel"; initial_cumulative_reading?: string; }[]>(defaultValues || []);
-  const [form, setForm] = useState({ label: "", fuel_type: "petrol", initial_cumulative_reading: "" });
+  const [form, setForm] = useState<{ label: string; fuel_type: "petrol" | "diesel"; initial_cumulative_reading: string }>({ label: "", fuel_type: "petrol", initial_cumulative_reading: "" });
   const [selectedPumpIdx, setSelectedPumpIdx] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string|null>(null);
 
   const handleAddNozzle = () => {
     if (!form.label) return setError("Nozzle label required.");
-    setNozzles(nz => [...nz, { ...form, pump_idx: selectedPumpIdx }]);
+    // Only add fuel_type that's cast to correct type
+    setNozzles(nz => [...nz, { ...form, pump_idx: selectedPumpIdx, fuel_type: form.fuel_type }]);
     setForm({ label: "", fuel_type: "petrol", initial_cumulative_reading: "" });
     setError(null);
   };
@@ -62,8 +63,16 @@ const StepAddNozzles: React.FC<Props> = ({ pumps, defaultValues, onNext, onBack 
       </div>
       <div>
         <Label htmlFor="fuel_type">Fuel Type *</Label>
-        <select id="fuel_type" className="w-full border rounded py-2 px-2 bg-background" value={form.fuel_type}
-          onChange={e => setForm(f => ({ ...f, fuel_type: e.target.value }))}>
+        <select
+          id="fuel_type"
+          className="w-full border rounded py-2 px-2 bg-background"
+          value={form.fuel_type}
+          onChange={e =>
+            setForm(f => ({
+              ...f,
+              fuel_type: e.target.value as "petrol" | "diesel"
+            }))}
+        >
           {NOZZLE_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
         </select>
       </div>
@@ -95,3 +104,4 @@ const StepAddNozzles: React.FC<Props> = ({ pumps, defaultValues, onNext, onBack 
 };
 
 export default StepAddNozzles;
+
