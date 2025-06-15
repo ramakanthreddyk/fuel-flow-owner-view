@@ -3,10 +3,25 @@ openapi: 3.0.0
 info:
   title: Fuel Station Setup API
   version: 1.0.0
-  description: API for fuel station wizard management (stations CRUD)
+  description: |-
+    API for fuel station wizard management.
+    Provides CRUD for users, stations, pumps, nozzles, and employees.
+
+    ## Main features:
+
+    - Manage Stations (CRUD)
+    - Manage Users (CRUD, with roles)
+    - Manage Pumps & Nozzles (add to stations)
+    - Assign Employees to Stations
+    - Get station/owner assignment summaries
+    - Dashboard and analytics sample data
+    - Employees CRUD operations
+
 servers:
   - url: http://localhost:4000
+
 paths:
+  # --- Stations CRUD ---
   /stations:
     post:
       summary: Create a new station
@@ -93,8 +108,104 @@ paths:
           description: Deleted
         "404":
           description: Not found
+
+  # --- Employees CRUD ---
+  /employees:
+    get:
+      summary: List all employees
+      tags: [Employees]
+      description: Returns all users with the 'employee' role
+      responses:
+        "200":
+          description: List of employees
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SafeUser"
+    post:
+      summary: Create a new employee
+      tags: [Employees]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmployeeInput"
+      responses:
+        "201":
+          description: The created employee (no password)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SafeUser"
+        "400":
+          description: Invalid input
+
+  /employees/{employeeId}:
+    get:
+      summary: Get an employee by ID
+      tags: [Employees]
+      parameters:
+        - name: employeeId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Employee found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SafeUser"
+        "404":
+          description: Not found
+    put:
+      summary: Update an employee
+      tags: [Employees]
+      parameters:
+        - name: employeeId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmployeeInput"
+      responses:
+        "200":
+          description: Updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SafeUser"
+        "400":
+          description: Invalid input
+        "404":
+          description: Not found
+    delete:
+      summary: Delete an employee
+      tags: [Employees]
+      parameters:
+        - name: employeeId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Employee deleted
+        "404":
+          description: Not found
+
 components:
   schemas:
+    # Station schemas
     StationInput:
       type: object
       required:
@@ -115,3 +226,39 @@ components:
           properties:
             id:
               type: string
+
+    # Employee schemas
+    EmployeeInput:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - role
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        role:
+          type: string
+          enum: [employee]
+      description: "Payload for creating/updating employees. Role must be 'employee'."
+    SafeUser:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+      description: "User (no password)"
+
+# ... rest of file is unchanged (other existing endpoints: users, pumps, summary, etc.) ...
+
