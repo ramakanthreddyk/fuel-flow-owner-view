@@ -1,21 +1,30 @@
 
 import { useQuery } from "@tanstack/react-query";
+import { useUser } from "@/context/UserContext";
 
-// Fetch stations assigned to a user
-export function useAssignedStations(userId?: string) {
+// Determine user's role and fetch assigned/owned stations
+export function useAssignedStations(user) {
+  const { role, id } = user || {};
   return useQuery({
-    queryKey: ["assigned-stations", userId],
+    queryKey: ["assigned-stations", id, role],
     queryFn: async () => {
-      if (!userId) return [];
-      const r = await fetch(`/api/stations/assigned?user_id=${userId}`);
+      if (!id) return [];
+      // Owner: stations.created_by = $CURRENT_USER_ID
+      if (role === "owner") {
+        const r = await fetch(`/api/stations?created_by=${id}`);
+        if (!r.ok) throw new Error("Could not fetch owned stations");
+        return r.json();
+      }
+      // Employee: stations assigned via employee_station_assignments
+      const r = await fetch(`/api/stations/assigned?user_id=${id}`);
       if (!r.ok) throw new Error("Could not fetch assigned stations");
       return r.json();
     },
-    enabled: !!userId
+    enabled: !!id && !!role
   });
 }
 
-// Fetch pumps for station
+// Fetch pumps for a station (stationId)
 export function usePumps(stationId?: string) {
   return useQuery({
     queryKey: ["pumps", stationId],
@@ -29,17 +38,24 @@ export function usePumps(stationId?: string) {
   });
 }
 
-// Fetch nozzles for pump
-export function useNozzles(pumpId?: string) {
+// Fetch nozzles for a pump/group of pumps (pumpId or stationId)
+export function useNozzles({ stationId, pumpId }: { stationId?: string; pumpId?: string }) {
   return useQuery({
-    queryKey: ["nozzles", pumpId],
+    queryKey: ["nozzles", stationId, pumpId],
     queryFn: async () => {
-      if (!pumpId) return [];
-      const r = await fetch(`/api/nozzles?pump_id=${pumpId}`);
-      if (!r.ok) throw new Error("Could not fetch nozzles");
-      return r.json();
+      if (pumpId) {
+        const r = await fetch(`/api/nozzles?pump_id=${pumpId}`);
+        if (!r.ok) throw new Error("Could not fetch nozzles");
+        return r.json();
+      }
+      if (stationId) {
+        const r = await fetch(`/api/nozzles?station_id=${stationId}`);
+        if (!r.ok) throw new Error("Could not fetch nozzles");
+        return r.json();
+      }
+      return [];
     },
-    enabled: !!pumpId
+    enabled: !!stationId || !!pumpId
   });
 }
 
