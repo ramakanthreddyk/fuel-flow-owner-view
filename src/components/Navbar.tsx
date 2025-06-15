@@ -57,11 +57,12 @@ const Navbar = () => {
         <div className="flex-0 flex w-full justify-end md:w-auto mt-4 md:mt-0 gap-2">
           {loggedIn ? (
             <Button variant="outline" size="sm" onClick={handleLogout}>
-              <LogOut className="mr-2" />
+              <LogOut className="mr-2 text-blue-600" />
               <span className="sr-only">Logout</span>
             </Button>
           ) : (
             <Button variant="default" size="sm" onClick={handleLogin}>
+              {/* Optionally add a login icon here, for visual parity */}
               Login
             </Button>
           )}
@@ -71,7 +72,7 @@ const Navbar = () => {
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
           >
-            <Menu className="size-6 text-gray-800" />
+            <Menu className="size-6 text-blue-700" />
           </button>
         </div>
       </div>
@@ -101,7 +102,7 @@ const Navbar = () => {
                 className="mt-2 flex items-center"
                 onClick={handleLogout}
               >
-                <LogOut className="mr-2" />
+                <LogOut className="mr-2 text-blue-600" />
                 <span className="sr-only">Logout</span>
               </Button>
             ) : (

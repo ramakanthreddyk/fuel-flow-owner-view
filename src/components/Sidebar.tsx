@@ -16,19 +16,19 @@ const navSections = [
   {
     label: "General",
     items: [
-      { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
-      { label: "Stations", to: "/stations", icon: Building },
-      { label: "Sales", to: "/sales", icon: ShoppingCart },
-      { label: "Data Entry", to: "/data-entry", icon: FileEdit },
+      { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard, iconClass: "text-blue-500" },
+      { label: "Stations", to: "/stations", icon: Building, iconClass: "text-indigo-500" },
+      { label: "Sales", to: "/sales", icon: ShoppingCart, iconClass: "text-green-500" },
+      { label: "Data Entry", to: "/data-entry", icon: FileEdit, iconClass: "text-pink-500" },
     ],
   },
   {
     label: "Admin",
-    items: [{ label: "Users", to: "/users", icon: Users, requireRole: "superadmin" }],
+    items: [{ label: "Users", to: "/users", icon: Users, iconClass: "text-orange-500", requireRole: "superadmin" }],
   },
   {
     label: "Other",
-    items: [{ label: "Settings", to: "/settings", icon: Settings }],
+    items: [{ label: "Settings", to: "/settings", icon: Settings, iconClass: "text-gray-500" }],
   },
 ];
 
@@ -57,9 +57,9 @@ const Sidebar = () => {
                         "flex items-center gap-2 px-3 py-2 rounded text-gray-400 opacity-60 cursor-not-allowed relative"
                       )}
                     >
-                      <item.icon className="w-5 h-5" />
+                      <item.icon className={cn("w-5 h-5", item.iconClass)} />
                       <span>{item.label}</span>
-                      <Lock className="w-4 h-4 ml-auto" />
+                      <Lock className="w-4 h-4 ml-auto text-gray-300" />
                     </div>
                   );
                 }
@@ -77,7 +77,7 @@ const Sidebar = () => {
                     }
                     end
                   >
-                    <item.icon className="w-5 h-5" />
+                    <item.icon className={cn("w-5 h-5", item.iconClass)} />
                     <span>{item.label}</span>
                   </NavLink>
                 );
