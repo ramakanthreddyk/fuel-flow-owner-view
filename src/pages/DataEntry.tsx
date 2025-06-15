@@ -19,7 +19,7 @@ import { useToast, toast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import RequireRole from "@/components/RequireRole";
 import { useUser } from "@/context/UserContext";
-import ManualEntryForm from "./data-entry/ManualEntryForm";
+import ManualEntryPage from "./data-entry/ManualEntryPage";
 import OcrEntryForm from "./data-entry/OcrEntryForm";
 
 // New: Util hook to fetch user's assigned stations
@@ -486,13 +486,11 @@ export default function DataEntryPage() {
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="ocr"><OcrEntryForm /></TabsContent>
-              <TabsContent value="manual"><ManualEntryForm /></TabsContent>
+              <TabsContent value="manual"><ManualEntryPage /></TabsContent>
               <TabsContent value="tender">
-                {/* Placeholder for TenderForm, implement as a separate small component */}
                 <div className="text-muted-foreground text-center py-10">Tender Entry Form Coming Soon</div>
               </TabsContent>
               <TabsContent value="refill">
-                {/* Placeholder for RefillForm, implement as a separate small component */}
                 <div className="text-muted-foreground text-center py-10">Tank Refill Form Coming Soon</div>
               </TabsContent>
             </Tabs>
