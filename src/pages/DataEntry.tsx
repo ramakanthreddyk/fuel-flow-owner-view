@@ -456,7 +456,6 @@ function RefillForm() {
 }
 
 export default function DataEntryPage() {
-  // Only show role-guarded DataEntry page, with refactored forms
   return (
     <RequireRole roles={["superadmin", "owner", "employee"]}>
       <div>
