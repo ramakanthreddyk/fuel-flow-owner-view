@@ -1,4 +1,3 @@
-
 import { Router } from "express";
 
 const router = Router();
@@ -8,6 +7,7 @@ let manualReadings: any[] = [];
 
 // POST /api/manual-readings
 router.post("/", (req, res) => {
+  console.log("[POST /api/manual-readings] received:", req.body);
   const { nozzleId, cumulativeVolume, recordedAt, stationId } = req.body;
   if (!nozzleId || !cumulativeVolume || !stationId) {
     return res.status(400).json({ error: "Missing required fields" });
@@ -32,4 +32,3 @@ router.get("/", (_req, res) => {
 });
 
 export default router;
-

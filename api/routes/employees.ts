@@ -1,4 +1,3 @@
-
 // Employee CRUD API
 
 import express from "express";
@@ -41,6 +40,7 @@ router.get("/:id", (req, res) => {
 
 // Create a new employee
 router.post("/", (req, res) => {
+  console.log("[POST /api/employees] received:", req.body);
   const result = UserInput.safeParse(req.body);
   if (!result.success) {
     return res.status(400).json({ error: result.error.flatten() });
@@ -61,6 +61,7 @@ router.post("/", (req, res) => {
 
 // Update an employee
 router.put("/:id", (req, res) => {
+  console.log(`[PUT /api/employees/${req.params.id}] received:`, req.body);
   const { id } = req.params;
   const existing = users.get(id);
   if (!existing || existing.role !== UserRole.enum.employee) {
@@ -96,4 +97,3 @@ router.delete("/:id", (req, res) => {
 });
 
 export default router;
-

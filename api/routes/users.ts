@@ -1,4 +1,3 @@
-
 import express from "express";
 import { v4 as uuidv4 } from "uuid";
 import { UserInput, User, UserRole } from "../data/types";
@@ -7,6 +6,7 @@ import { users } from "../data/memoryStore";
 const router = express.Router();
 
 router.post("/", (req, res) => {
+  console.log("[POST /api/users] received:", req.body);
   const result = UserInput.safeParse(req.body);
   if (!result.success) {
     return res.status(400).json({ error: result.error.flatten() });

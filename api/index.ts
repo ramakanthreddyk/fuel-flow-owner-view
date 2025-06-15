@@ -33,6 +33,7 @@ app.use("/api/auth", authRoutes);
 
 // Mount placeholder endpoints
 app.use("/api/tender-entries", tenderEntriesRoutes);
+app.use("/api/tenders", tenderEntriesRoutes);
 app.use("/api/refills", refillsRoutes);
 app.use("/api/ocr-readings", ocrReadingsRoutes);
 app.use("/api/plans", plansRoutes);
