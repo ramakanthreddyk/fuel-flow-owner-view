@@ -7,7 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Image as ImageIcon, Upload as UploadIcon } from "lucide-react";
+import { 
+  Calendar as CalendarIcon, 
+  Upload as UploadIcon, 
+  FileText, 
+  FileEdit, 
+  CreditCard, 
+  Fuel
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import RequireRole from "@/components/RequireRole";
@@ -502,10 +509,22 @@ export default function DataEntryPage() {
           <CardContent>
             <Tabs defaultValue="ocr" className="w-full">
               <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-4">
-                <TabsTrigger value="ocr">OCR Entry</TabsTrigger>
-                <TabsTrigger value="manual">Manual Entry</TabsTrigger>
-                <TabsTrigger value="tender">Tender Entry</TabsTrigger>
-                <TabsTrigger value="refill">Tank Refill</TabsTrigger>
+                <TabsTrigger value="ocr">
+                  <FileText className="inline-block mr-2 text-blue-600" size={20} /> 
+                  OCR Entry
+                </TabsTrigger>
+                <TabsTrigger value="manual">
+                  <FileEdit className="inline-block mr-2 text-pink-500" size={20} />
+                  Manual Entry
+                </TabsTrigger>
+                <TabsTrigger value="tender">
+                  <CreditCard className="inline-block mr-2 text-green-600" size={20} />
+                  Tender Entry
+                </TabsTrigger>
+                <TabsTrigger value="refill">
+                  <Fuel className="inline-block mr-2 text-yellow-500" size={20} />
+                  Tank Refill
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="ocr"><OcrForm /></TabsContent>
               <TabsContent value="manual"><ManualForm /></TabsContent>
