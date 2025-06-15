@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,7 +8,7 @@ import NotFound from "./pages/NotFound";
 import OwnerDashboard from "./pages/OwnerDashboard";
 import { WizardProvider } from "@/context/WizardContext";
 import AppSuperadminSidebar from "@/components/superadmin-wizard/AppSuperadminSidebar";
-+import Navbar from "@/components/Navbar";
+import Navbar from "@/components/Navbar";
 
 // Wizard step pages
 import CreateUser from "@/pages/superadmin-wizard/CreateUser";
@@ -38,7 +37,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <BrowserRouter>
-+        <Navbar />
+        <Navbar />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/owner-dashboard" element={<OwnerDashboard />} />
