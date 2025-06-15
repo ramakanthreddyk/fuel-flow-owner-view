@@ -152,6 +152,27 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          email: string | null
+          id: string
+          name: string | null
+          role: string
+        }
+        Insert: {
+          email?: string | null
+          id: string
+          name?: string | null
+          role?: string
+        }
+        Update: {
+          email?: string | null
+          id?: string
+          name?: string | null
+          role?: string
+        }
+        Relationships: []
+      }
       pumps: {
         Row: {
           deleted_at: string | null
