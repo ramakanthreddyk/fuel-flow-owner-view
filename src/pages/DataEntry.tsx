@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -188,7 +187,7 @@ export default function DataEntryPage() {
                     <SelectItem key={nozzle.id} value={nozzle.id}>{nozzle.label} ({nozzle.fuelType})</SelectItem>
                   ))
                 ) : (
-                  <SelectItem value="" disabled>No nozzles</SelectItem>
+                  <div className="px-2 py-1 text-muted-foreground text-sm">No nozzles</div>
                 )}
               </SelectContent>
             </Select>
@@ -269,7 +268,7 @@ export default function DataEntryPage() {
                     <SelectItem key={nozzle.id} value={nozzle.id}>{nozzle.label} ({nozzle.fuelType})</SelectItem>
                   ))
                 ) : (
-                  <SelectItem value="" disabled>No nozzles</SelectItem>
+                  <div className="px-2 py-1 text-muted-foreground text-sm">No nozzles</div>
                 )}
               </SelectContent>
             </Select>
@@ -352,7 +351,7 @@ export default function DataEntryPage() {
                     <SelectItem key={st.id} value={st.id}>{st.name}</SelectItem>
                   ))
                 ) : (
-                  <SelectItem value="" disabled>No stations</SelectItem>
+                  <div className="px-2 py-1 text-muted-foreground text-sm">No stations</div>
                 )}
               </SelectContent>
             </Select>
@@ -456,7 +455,7 @@ export default function DataEntryPage() {
                     <SelectItem key={st.id} value={st.id}>{st.name}</SelectItem>
                   ))
                 ) : (
-                  <SelectItem value="" disabled>No stations</SelectItem>
+                  <div className="px-2 py-1 text-muted-foreground text-sm">No stations</div>
                 )}
               </SelectContent>
             </Select>
@@ -575,4 +574,3 @@ export default function DataEntryPage() {
     </RequireRole>
   );
 }
-
