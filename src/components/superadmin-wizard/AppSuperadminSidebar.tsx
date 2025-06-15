@@ -2,9 +2,7 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { User, Store, Wrench, Fuel, Briefcase, Clipboard } from "lucide-react";
-import { useWizard } from "@/context/WizardContext";
 
-// Soft Lucid-inspired accent color for icons and gradients:
 const iconAccent = "text-blue-400 dark:text-blue-300";
 
 const steps = [
@@ -17,28 +15,7 @@ const steps = [
 ];
 
 export default function AppSuperadminSidebar() {
-  const { state } = useWizard();
   const { pathname } = useLocation();
-
-  let allowedIdx = 0;
-  if (state.user?.role === "owner") {
-    if (state.user) allowedIdx = 1;
-    if (state.station) allowedIdx = 2;
-    if (state.pumps.length > 0) allowedIdx = 3;
-    if (state.nozzles.length > 0) allowedIdx = 4;
-    if (
-      state.user &&
-      state.station &&
-      state.pumps.length > 0 &&
-      state.nozzles.length > 0
-    ) allowedIdx = 5;
-  } else if (state.user?.role === "employee") {
-    if (state.user) allowedIdx = 4;
-    if (state.employeeAssignment) allowedIdx = 5;
-  }
-
-  // Debug: log allowedIdx and current wizard state
-  console.log("[Sidebar DEBUG] allowedIdx:", allowedIdx, "wizard state:", state);
 
   return (
     <aside
@@ -58,26 +35,12 @@ export default function AppSuperadminSidebar() {
       {/* Steps Navigation */}
       <nav className="flex-1 px-4 pt-7 flex flex-col gap-1">
         {steps.map((step, idx) => {
-          // Determine disabled state as before:
-          let disabled = false;
-          if (
-            (idx === 1 || idx === 2 || idx === 3) &&
-            state.user?.role === "employee"
-          )
-            disabled = true;
-          if (idx === 4 && state.user?.role === "owner") disabled = true;
-          if (idx > allowedIdx) disabled = true;
-
-          // Debug: log each step and its disabled state
-          console.log("[Sidebar DEBUG] Step:", step.label, "idx:", idx, "disabled:", disabled);
-
           const isActive = pathname === step.url;
           return (
             <NavLink
               key={step.url}
               to={step.url}
-              tabIndex={disabled ? -1 : 0}
-              aria-disabled={disabled}
+              tabIndex={0}
               className={({ isActive: navActive }) =>
                 [
                   "flex items-center gap-3 px-5 py-3 rounded-xl text-lg transition-colors relative group shadow-sm",
@@ -87,7 +50,7 @@ export default function AppSuperadminSidebar() {
                     : "hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-950 dark:hover:text-blue-200",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/30",
                   "duration-200",
-                  disabled ? "opacity-40 cursor-not-allowed pointer-events-none" : "cursor-pointer"
+                  "cursor-pointer"
                 ].join(" ")
               }
               style={{
@@ -96,8 +59,7 @@ export default function AppSuperadminSidebar() {
             >
               <span
                 className={[
-                  "flex items-center justify-center transition-transform duration-200",
-                  disabled ? "" : "group-hover:scale-110"
+                  "flex items-center justify-center transition-transform duration-200 group-hover:scale-110"
                 ].join(" ")}
                 style={{ minWidth: 24 }}
               >
@@ -105,7 +67,7 @@ export default function AppSuperadminSidebar() {
               </span>
               <span className="truncate">{step.label}</span>
               {/* Side accent bar for active state */}
-              {isActive && !disabled && (
+              {isActive && (
                 <span className="absolute left-0 top-2 h-2/3 w-1.5 bg-blue-400 dark:bg-blue-300 rounded-r-2xl shadow-md transition-all duration-200" />
               )}
             </NavLink>
