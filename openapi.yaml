@@ -1,0 +1,117 @@
+
+openapi: 3.0.0
+info:
+  title: Fuel Station Setup API
+  version: 1.0.0
+  description: API for fuel station wizard management (stations CRUD)
+servers:
+  - url: http://localhost:4000
+paths:
+  /stations:
+    post:
+      summary: Create a new station
+      tags: [Stations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StationInput"
+      responses:
+        "201":
+          description: Station created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Station"
+    get:
+      summary: Get all stations
+      tags: [Stations]
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Station"
+  /stations/{stationId}:
+    get:
+      summary: Get a station by ID
+      tags: [Stations]
+      parameters:
+        - name: stationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Station"
+        "404":
+          description: Not found
+    put:
+      summary: Update a station
+      tags: [Stations]
+      parameters:
+        - name: stationId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StationInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Station"
+        "404":
+          description: Not found
+    delete:
+      summary: Delete a station
+      tags: [Stations]
+      parameters:
+        - name: stationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+components:
+  schemas:
+    StationInput:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+    Station:
+      allOf:
+        - $ref: "#/components/schemas/StationInput"
+        - type: object
+          properties:
+            id:
+              type: string
