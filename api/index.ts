@@ -1,4 +1,3 @@
-
 import express from "express";
 import usersRoutes from "./routes/users";
 import stationsRoutes from "./routes/stations";
@@ -6,6 +5,7 @@ import pumpsRoutes from "./routes/pumps";
 import nozzlesRoutes from "./routes/nozzles";
 import employeesRoutes from "./routes/employees";
 import summaryRoutes from "./routes/summary";
+import dashboardRoutes from "./routes/dashboard";
 
 const app = express();
 
@@ -18,6 +18,8 @@ app.use("/api/pumps", pumpsRoutes);
 app.use("/api/nozzles", nozzlesRoutes);
 app.use("/api/employees", employeesRoutes);
 app.use("/api/summary", summaryRoutes);
+// Mount the new dashboard mock route
+app.use("/api/dashboard", dashboardRoutes);
 
 app.get("/", (_req, res) => res.send("Superadmin Wizard API is running!"));
 
