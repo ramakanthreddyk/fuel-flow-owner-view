@@ -1,47 +1,35 @@
 
-import express from "express";
-const router = express.Router();
+import { Router } from "express";
 
-/**
- * @openapi
- * /manual-readings:
- *   post:
- *     summary: Create a manual pump reading entry
- *     tags: [Readings]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: "#/components/schemas/ManualReadingInput"
- *     responses:
- *       "201":
- *         description: Entry created
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Reading"
- *       "400":
- *         description: Bad request
- */
+const router = Router();
 
-// (This is a placeholder; add schema/data store as needed)
-router.post("/", async (req, res) => {
-  const { nozzleId, cumulativeVolume, recordedAt, method } = req.body;
-  // Basic validation
-  if (!nozzleId || typeof cumulativeVolume !== "number" || !recordedAt || method !== "manual") {
-    return res.status(400).json({ error: "Invalid input for manual reading." });
+// In-memory mock DB
+let manualReadings: any[] = [];
+
+// POST /api/manual-readings
+router.post("/", (req, res) => {
+  const { nozzleId, cumulativeVolume, recordedAt, stationId } = req.body;
+  if (!nozzleId || !cumulativeVolume || !stationId) {
+    return res.status(400).json({ error: "Missing required fields" });
   }
-  // Simulate insertion and ID creation
-  const reading = {
-    id: Math.floor(Math.random() * 1e9).toString(),
+
+  const entry = {
+    id: Date.now().toString(),
+    method: "manual",
     nozzleId,
     cumulativeVolume,
-    recordedAt,
-    method,
-    createdAt: new Date().toISOString(),
+    recordedAt: recordedAt || new Date().toISOString(),
+    stationId,
   };
-  res.status(201).json(reading);
+
+  manualReadings.push(entry);
+  res.status(201).json(entry);
+});
+
+// GET /api/manual-readings
+router.get("/", (_req, res) => {
+  res.json(manualReadings);
 });
 
 export default router;
+
