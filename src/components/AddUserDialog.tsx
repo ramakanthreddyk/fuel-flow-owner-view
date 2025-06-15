@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Dialog,
@@ -28,9 +27,10 @@ type RoleOption = "superadmin" | "owner" | "employee";
 
 interface AddUserDialogProps {
   onCreated?: () => void;
+  onUserCreated?: (user: { id: string; name: string; email: string; role: RoleOption }) => void;
 }
 
-export function AddUserDialog({ onCreated }: AddUserDialogProps) {
+export function AddUserDialog({ onCreated, onUserCreated }: AddUserDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -55,9 +55,14 @@ export function AddUserDialog({ onCreated }: AddUserDialogProps) {
         const data = await res.json();
         throw new Error(data.error?.email?._errors?.[0] || data.error || "Failed to add user");
       }
+      const backendUser = await res.json();
       setOpen(false);
       toast({ title: "User added", description: "The user has been created." });
       form.reset();
+      onUserCreated?.({
+        ...backendUser,
+        email: values.email, // backend returns id, name, role. Add email for local
+      });
       onCreated?.();
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -152,8 +157,8 @@ export function AddUserDialog({ onCreated }: AddUserDialogProps) {
                   Cancel
                 </Button>
               </DialogClose>
-              <Button type="submit" disabled={loading} loading={loading}>
-                Create
+              <Button type="submit" disabled={loading}>
+                {loading ? 'Creating...' : 'Create'}
               </Button>
             </DialogFooter>
           </form>
