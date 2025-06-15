@@ -50,6 +50,8 @@ export function useUser(): UseUserResult {
           setProfile(null);
           setError("No profile found for authenticated user.");
         } else {
+          // Log the exact result from Supabase
+          console.log("[useUser] Fetched profile from Supabase:", data);
           // TODO: For "plan", assume "premium" if user is superadmin, else "free". Modify logic if plan becomes available.
           setProfile({
             name: data.name ?? data.email ?? "Unknown",
