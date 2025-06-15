@@ -44,7 +44,8 @@ const Navbar = () => {
   return (
     <header className="bg-white border-b shadow-sm sticky top-0 z-40">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between px-4 py-3 md:py-2">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-8 flex-1">
+        {/* Left: Logo and Nav Items */}
+        <div className="flex flex-col md:flex-row md:items-center md:gap-8 flex-1 w-full">
           <Link
             to="/"
             className="font-bold text-xl text-gray-800 tracking-tight flex items-center gap-2"
@@ -52,7 +53,7 @@ const Navbar = () => {
             FuelSaaS
           </Link>
           {showNavItems && (
-            <nav className="hidden md:flex items-center gap-5 mt-2 md:mt-0 ml-1">
+            <nav className="flex items-center gap-5 mt-2 md:mt-0 ml-0">
               {navItems.map((item) => (
                 <Link
                   key={item.to}
@@ -68,13 +69,13 @@ const Navbar = () => {
             </nav>
           )}
         </div>
-        {/* Auth/User Info on Right */}
+        {/* Right: User Info and Logout/Login */}
         <div className="flex-0 flex w-full justify-end md:w-auto mt-4 md:mt-0 gap-2 items-center">
           {user && (
             <>
-              <div className="hidden md:block mr-2 text-sm font-medium text-gray-700 select-none">
+              <div className="mr-2 text-sm font-medium text-gray-700 select-none flex items-center gap-2">
                 <span className="truncate">{appUser.name}</span>
-                <span className="ml-2 px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600 border border-gray-200 font-semibold">
+                <span className="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600 border border-gray-200 font-semibold">
                   {roleLabel}
                 </span>
               </div>
