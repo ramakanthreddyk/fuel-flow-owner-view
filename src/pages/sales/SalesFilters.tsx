@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 
 type FilterState = {
   dateRange: { from: Date | null; to: Date | null }, // both inclusive
-  fuelType: string | "";
-  source: string | "";
-  stationId: string | "";
+  fuelType: string;
+  source: string;
+  stationId: string;
 };
 
 interface SalesFiltersProps {
@@ -37,7 +37,7 @@ export default function SalesFilters({ filter, onChange, stationOptions, showSta
             <SelectValue placeholder="All" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All</SelectItem>
+            <SelectItem value="all">All</SelectItem>
             <SelectItem value="petrol">Petrol</SelectItem>
             <SelectItem value="diesel">Diesel</SelectItem>
           </SelectContent>
@@ -50,7 +50,7 @@ export default function SalesFilters({ filter, onChange, stationOptions, showSta
             <SelectValue placeholder="All" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All</SelectItem>
+            <SelectItem value="all">All</SelectItem>
             <SelectItem value="ocr">OCR</SelectItem>
             <SelectItem value="manual">Manual</SelectItem>
           </SelectContent>
@@ -64,7 +64,7 @@ export default function SalesFilters({ filter, onChange, stationOptions, showSta
               <SelectValue placeholder="All" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All</SelectItem>
+              <SelectItem value="all">All</SelectItem>
               {stationOptions.map(s => (
                 <SelectItem value={s.id} key={s.id}>{s.name}</SelectItem>
               ))}
@@ -74,9 +74,9 @@ export default function SalesFilters({ filter, onChange, stationOptions, showSta
       }
       <Button variant="ghost" size="sm" className="md:ml-8" onClick={() => onChange({
         dateRange: { from: null, to: null },
-        fuelType: "",
-        source: "",
-        stationId: "",
+        fuelType: "all",
+        source: "all",
+        stationId: "all",
       })}>Clear All</Button>
     </div>
   );

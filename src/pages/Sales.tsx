@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/context/UserContext";
@@ -17,9 +18,10 @@ function buildFiltersQuery(filter: any) {
   const params = new URLSearchParams();
   if (filter.dateRange?.from) params.append("from", filter.dateRange.from.toISOString());
   if (filter.dateRange?.to) params.append("to", filter.dateRange.to.toISOString());
-  if (filter.fuelType) params.append("fuelType", filter.fuelType);
-  if (filter.source) params.append("source", filter.source);
-  if (filter.stationId) params.append("stationId", filter.stationId);
+  // "all" means unfiltered, send blank to API
+  if (filter.fuelType && filter.fuelType !== "all") params.append("fuelType", filter.fuelType);
+  if (filter.source && filter.source !== "all") params.append("source", filter.source);
+  if (filter.stationId && filter.stationId !== "all") params.append("stationId", filter.stationId);
   return params;
 }
 
@@ -28,9 +30,9 @@ export default function SalesPage() {
 
   const [filter, setFilter] = React.useState(() => ({
     dateRange: getInitialDateRange(),
-    fuelType: "",
-    source: "",
-    stationId: "",
+    fuelType: "all",
+    source: "all",
+    stationId: "all",
   }));
 
   const [page, setPage] = React.useState(1);
