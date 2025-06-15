@@ -1,3 +1,4 @@
+
 import express from "express";
 import usersRoutes from "./routes/users";
 import stationsRoutes from "./routes/stations";
@@ -7,6 +8,14 @@ import employeesRoutes from "./routes/employees";
 import summaryRoutes from "./routes/summary";
 import dashboardRoutes from "./routes/dashboard";
 import authRoutes from "./routes/auth";
+
+// --- Placeholder routes below ---
+import tenderEntriesRoutes from "./routes/tender-entries";
+import refillsRoutes from "./routes/refills";
+import ocrReadingsRoutes from "./routes/ocr-readings";
+import plansRoutes from "./routes/plans";
+import analyticsRoutes from "./routes/analytics";
+import uploadsRoutes from "./routes/uploads";
 
 const app = express();
 
@@ -22,7 +31,20 @@ app.use("/api/summary", summaryRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/auth", authRoutes);
 
+// Mount placeholder endpoints
+app.use("/api/tender-entries", tenderEntriesRoutes);
+app.use("/api/refills", refillsRoutes);
+app.use("/api/ocr-readings", ocrReadingsRoutes);
+app.use("/api/plans", plansRoutes);
+app.use("/api/analytics", analyticsRoutes);
+app.use("/api/uploads", uploadsRoutes);
+
 app.get("/", (_req, res) => res.send("Superadmin Wizard API is running!"));
+
+// --- Add 404 Not Found Handler (after all routes, before error handler) ---
+app.use((_req, res) => {
+  res.status(404).json({ error: "Not Found" });
+});
 
 // Error handling: catch all
 app.use((err: any, _req: any, res: any, _next: any) => {
@@ -32,3 +54,4 @@ app.use((err: any, _req: any, res: any, _next: any) => {
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`API listening on http://localhost:${PORT}`));
+
