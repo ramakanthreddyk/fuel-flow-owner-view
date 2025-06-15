@@ -27,7 +27,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // 1. Create user in auth.users
+    // Create user in auth.users
     const { data: userData, error: authError } = await supabase.auth.admin.createUser({
       email,
       password,
@@ -43,7 +43,7 @@ serve(async (req) => {
 
     const userId = userData.user.id;
 
-    // 2. Check if user already exists in users table
+    // Insert into users table (if not already inserted via triggers)
     const { data: existingUser, error: userCheckErr } = await supabase
       .from("users")
       .select("id, name, email")
@@ -63,7 +63,6 @@ serve(async (req) => {
         .insert([{ id: userId, name, email, password }]);
 
       if (userInsertError) {
-        // Enhanced error details:
         return new Response(JSON.stringify({
           error: "User DB insert failed",
           details: userInsertError.message,
@@ -79,15 +78,44 @@ serve(async (req) => {
       }
     }
 
-    // 3. user_roles row is now inserted automatically by database trigger after inserting into users.
-    // Optional: You may want to update the role from its default value (employee) if requested specifically.
-    // If you need to support a non-default role at insert time, you may want extra logic.
-    // For now, the role will always default to 'employee' on user creation.
+    // Insert into user_roles if not present (in case triggers don't do it, or a custom role is requested)
+    const { data: userRoleData, error: userRoleError } = await supabase
+      .from("user_roles")
+      .select("id, role")
+      .eq("user_id", userId)
+      .maybeSingle();
 
-    return new Response(
-      JSON.stringify({ id: userId, name, email, role: "employee", message: "User created successfully" }),
-      { status: 200, headers: corsHeaders }
-    );
+    if (!userRoleData) {
+      // Insert with requested role (superadmin/owner/employee)
+      const { error: insertRoleErr } = await supabase
+        .from("user_roles")
+        .insert([{ user_id: userId, role }]);
+      if (insertRoleErr) {
+        return new Response(JSON.stringify({
+          error: "Role DB insert failed",
+          details: insertRoleErr.message,
+          code: insertRoleErr.code,
+          constraint: insertRoleErr.constraint,
+          column: insertRoleErr.column,
+          table: insertRoleErr.table,
+        }), {
+          status: 400,
+          headers: corsHeaders,
+        });
+      }
+    }
+
+    // Done - leave additional logic (station creation/assignment) to the client/other endpoints
+    return new Response(JSON.stringify({
+      id: userId,
+      name,
+      email,
+      role,
+      message: "User created successfully (no station/assignment done; handle in follow-up calls)"
+    }), {
+      status: 200,
+      headers: corsHeaders,
+    });
 
   } catch (err) {
     return new Response(JSON.stringify({
