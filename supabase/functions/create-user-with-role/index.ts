@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js";
 
@@ -13,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { name, email, password } = await req.json();
+    const { name, email, password, role = "employee" } = await req.json();
     if (!name || !email || !password) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
         status: 400,
@@ -56,15 +55,36 @@ serve(async (req) => {
       });
     }
 
+    // Helper to upsert user_roles
+    async function ensureUserRole(userId: string, roleVal: string) {
+      // Check if user_role row exists for this user and role
+      const { data: existRoleRow, error: roleReadErr } = await supabase
+        .from("user_roles")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("role", roleVal)
+        .maybeSingle();
+      if (roleReadErr) return { error: roleReadErr };
+      if (!existRoleRow) {
+        // Insert new user_role
+        const { error: insErr } = await supabase
+          .from("user_roles")
+          .insert([{ user_id: userId, role: roleVal }]);
+        if (insErr) return { error: insErr };
+      }
+      return { ok: true };
+    }
+
     if (existingUser) {
-      // User already exists in the users table. Don't insert.
+      // User already exists in the users table. Ensure correct role exists.
+      await ensureUserRole(existingUser.id, role);
       return new Response(
-        JSON.stringify({ id: existingUser.id, name: existingUser.name, email: existingUser.email, role: "employee", message: "User already exists." }),
+        JSON.stringify({ id: existingUser.id, name: existingUser.name, email: existingUser.email, role, message: "User already exists." }),
         { status: 200, headers: corsHeaders }
       );
     }
 
-    // 3. Add entry to public.users (trigger will handle user_roles)
+    // 3. Add entry to public.users (trigger will handle user_roles, but we override it right after)
     const { data: appUser, error: userTableError } = await supabase
       .from("users")
       .insert([{ id: user.id, name, email, password }])
@@ -78,8 +98,11 @@ serve(async (req) => {
       });
     }
 
+    // 4. Insert intended role (overriding default if needed)
+    await ensureUserRole(appUser.id, role);
+
     return new Response(
-      JSON.stringify({ id: appUser.id, name: appUser.name, email: appUser.email, role: "employee" }),
+      JSON.stringify({ id: appUser.id, name: appUser.name, email: appUser.email, role }),
       { headers: corsHeaders }
     );
   } catch (err) {
