@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Dialog,
@@ -27,7 +28,7 @@ type RoleOption = "superadmin" | "owner" | "employee";
 
 interface AddUserDialogProps {
   onCreated?: () => void;
-  onUserCreated?: (user: { id: string; name: string; email: string; role: RoleOption }) => void;
+  onUserCreated?: (user: { id: string; name: string; email: string; role: RoleOption; password?: string }) => void;
 }
 
 export function AddUserDialog({ onCreated, onUserCreated }: AddUserDialogProps) {
