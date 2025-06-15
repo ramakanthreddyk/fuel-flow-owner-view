@@ -58,58 +58,32 @@ export function AddUserDialog({ onCreated, onUserCreated }: AddUserDialogProps) 
   async function onSubmit(values: { name: string; email: string; password: string; role: string }) {
     setLoading(true);
     try {
-      // Create user in Supabase (users table)
-      const { data: insertUser, error: insertUserErr } = await import("@/integrations/supabase/client").then(mod =>
-        mod.supabase
-          .from("users")
-          .insert([{ name: values.name, email: values.email, password: values.password }])
-          .select("id, name, email")
-          .maybeSingle()
-      );
-      console.log("Attempted to insert user into users table:", insertUser, insertUserErr);
+      // Call Edge Function instead of client-side insert
+      const result = await fetch("https://lkzodyzhxdyztormkfbw.supabase.co/functions/v1/create-user-with-role", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+      const data = await result.json();
 
-      if (insertUserErr || !insertUser) {
-        throw new Error(insertUserErr?.message || "User creation failed");
-      }
-
-      // Confirm user exists before inserting role (helps avoid 409 race condition)
-      const userExists = await ensureUserInDb(insertUser.id);
-      console.log("User existence check for role insert:", insertUser.id, userExists);
-      if (!userExists) {
-        throw new Error(
-          "User insert found, but user record not yet available. Please try again."
-        );
-      }
-
-      // Assign role
-      const { error: insertRoleErr } = await import("@/integrations/supabase/client").then(mod =>
-        mod.supabase
-          .from("user_roles")
-          .insert([{ user_id: insertUser.id, role: values.role }])
-      );
-      console.log("Tried inserting user role:", { user_id: insertUser.id, role: values.role }, insertRoleErr);
-      if (insertRoleErr) {
-        // Clean up: rollback user insert
-        await import("@/integrations/supabase/client").then(mod =>
-          mod.supabase.from("users").delete().eq("id", insertUser.id)
-        );
-        throw new Error(insertRoleErr.message || "Role insert failed");
+      if (!result.ok || data.error) {
+        throw new Error(data.error || "User creation failed");
       }
 
       setOpen(false);
       toast({ title: "User added", description: "The user has been created." });
       form.reset();
       onUserCreated?.({
-        id: insertUser.id,
-        name: insertUser.name,
-        email: values.email,
-        role: values.role as RoleOption,
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        role: data.role as RoleOption,
         password: values.password,
       });
       onCreated?.();
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
-      console.error("Error in AddUserDialog onSubmit chain:", err);
+      console.error("Error in AddUserDialog onSubmit:", err);
     }
     setLoading(false);
   }
