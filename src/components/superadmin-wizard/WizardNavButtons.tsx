@@ -16,13 +16,14 @@ const wizardRoutes = [
 
 type Props = {
   // Optional disable/handler logic
-  onNext?: () => Promise<void> | void;
+  onNext?: () => Promise<void | boolean> | void | boolean; // updated type
   onBack?: () => Promise<void> | void;
   nextDisabled?: boolean;
   backDisabled?: boolean;
   nextLabel?: string;
   backLabel?: string;
 };
+
 const WizardNavButtons: React.FC<Props> = ({
   onNext,
   onBack,
