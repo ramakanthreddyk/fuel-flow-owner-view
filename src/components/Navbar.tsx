@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Menu, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
 const navItems = [
   { label: "Dashboard", to: "/dashboard" },
@@ -18,13 +19,13 @@ const navItems = [
 const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
-  // Dummy auth state for demo
-  // In a real app, replace with actual context or supabase/clerk login state!
-  const [loggedIn, setLoggedIn] = useState(true);
-
-  const handleLogin = () => setLoggedIn(true);
-  const handleLogout = () => setLoggedIn(false);
+  const handleLogin = () => window.location.href = "/auth";
+  const handleLogout = async () => {
+    await signOut();
+    window.location.href = "/auth";
+  };
 
   return (
     <header className="bg-white border-b shadow-sm sticky top-0 z-40">
@@ -56,14 +57,13 @@ const Navbar = () => {
         </div>
         {/* Auth Buttons on Right */}
         <div className="flex-0 flex w-full justify-end md:w-auto mt-4 md:mt-0 gap-2">
-          {loggedIn ? (
+          {user ? (
             <Button variant="outline" size="sm" onClick={handleLogout}>
               <LogOut className="mr-2 text-blue-600" />
               <span className="sr-only">Logout</span>
             </Button>
           ) : (
             <Button variant="default" size="sm" onClick={handleLogin}>
-              {/* Optionally add a login icon here, for visual parity */}
               Login
             </Button>
           )}
@@ -96,7 +96,7 @@ const Navbar = () => {
                 {item.label}
               </Link>
             ))}
-            {loggedIn ? (
+            {user ? (
               <Button
                 variant="outline"
                 size="sm"
