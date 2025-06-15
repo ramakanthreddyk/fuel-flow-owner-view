@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
@@ -40,7 +39,8 @@ function UserRowSkeleton() {
 }
 
 export default function UsersPage() {
-  const [roleFilter, setRoleFilter] = useState<RoleOption | "">("");
+  const [roleFilter, setRoleFilter] = useState<RoleOption | "all">("all");
+
   const {
     data: users,
     isLoading,
@@ -58,7 +58,7 @@ export default function UsersPage() {
   // Filter users by selected role
   const filteredUsers = useMemo(() => {
     if (!users) return [];
-    return roleFilter
+    return roleFilter !== "all"
       ? users.filter((u) => u.role === roleFilter)
       : users;
   }, [users, roleFilter]);
@@ -74,12 +74,12 @@ export default function UsersPage() {
         <div className="mb-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex gap-2 items-center">
             <span className="font-medium text-sm">Role Filter:</span>
-            <Select value={roleFilter} onValueChange={v => setRoleFilter(v as RoleOption | "")}>
+            <Select value={roleFilter} onValueChange={v => setRoleFilter(v as RoleOption | "all")}>
               <SelectTrigger className="w-36">
                 <SelectValue placeholder="All Roles" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Roles</SelectItem>
+                <SelectItem value="all">All Roles</SelectItem>
                 <SelectItem value="superadmin">Superadmin</SelectItem>
                 <SelectItem value="owner">Owner</SelectItem>
                 <SelectItem value="employee">Employee</SelectItem>
