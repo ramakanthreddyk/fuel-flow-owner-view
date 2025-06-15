@@ -1,4 +1,3 @@
-
 import {
   Sidebar,
   SidebarContent,
@@ -22,7 +21,7 @@ import {
   Lock,
 } from "lucide-react";
 import React from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 
 // Map icon names to Tailwind color classes
 const ICON_COLORS: Record<string, string> = {
@@ -151,10 +150,10 @@ export function AppSidebar() {
                         asChild
                         isActive={isActive}
                       >
-                        <a href={item.to}>
+                        <Link to={item.to}>
                           <Icon className={colorClass} />
                           <span>{item.label}</span>
-                        </a>
+                        </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   );
