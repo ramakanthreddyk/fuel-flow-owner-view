@@ -14,7 +14,7 @@ export interface User {
 const MOCK_USER: User = {
   id: "1",
   name: "Amit Sharma",
-  role: "owner",   // Change for testing
+  role: "superadmin",   // Changed for demo
   plan: "free",    // Change for testing
 };
 
@@ -25,3 +25,4 @@ export const useUser = () => useContext(UserContext);
 export const UserProvider = ({ children }: { children: React.ReactNode }) => (
   <UserContext.Provider value={MOCK_USER}>{children}</UserContext.Provider>
 );
+
