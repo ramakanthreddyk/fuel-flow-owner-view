@@ -1,8 +1,8 @@
-
 import { useUser } from "@/context/UserContext";
 import RequireRole from "@/components/RequireRole";
 import { useQuery } from "@tanstack/react-query";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { AddStationDialog } from "@/components/AddStationDialog";
 
 type SalesByDay = { date: string; totalSales: number };
 
@@ -29,7 +29,7 @@ export default function StationsPage() {
       <h1 className="text-3xl font-bold mb-4">Stations</h1>
       {/* Hide or show controls/buttons based on role */}
       <RequireRole roles={["owner", "superadmin"]}>
-        <button className="mb-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded">Add Station</button>
+        <AddStationDialog />
       </RequireRole>
       <div className="p-4 border rounded bg-white mb-8">
         <h2 className="font-semibold text-lg mb-3">Sales By Day</h2>
@@ -58,4 +58,3 @@ export default function StationsPage() {
     </div>
   );
 }
-
