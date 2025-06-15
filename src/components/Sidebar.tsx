@@ -17,9 +17,9 @@ const navSections = [
     label: "General",
     items: [
       { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard, iconClass: "text-blue-500" },
-      { label: "Stations", to: "/stations", icon: Building, iconClass: "text-indigo-500" },
-      { label: "Sales", to: "/sales", icon: ShoppingCart, iconClass: "text-green-500" },
-      { label: "Data Entry", to: "/data-entry", icon: FileEdit, iconClass: "text-pink-500" },
+      { label: "Stations", to: "/stations", icon: Building, iconClass: "text-indigo-500", requireRole: "superadmin" },
+      { label: "Sales", to: "/sales", icon: ShoppingCart, iconClass: "text-green-500", requireRole: "superadmin" },
+      { label: "Data Entry", to: "/data-entry", icon: FileEdit, iconClass: "text-pink-500", requireRole: "superadmin" },
     ],
   },
   {
@@ -49,7 +49,8 @@ const Sidebar = () => {
             </span>
             <div className="flex flex-col gap-0.5">
               {section.items.map((item) => {
-                if (item.to === "/users" && user.role !== "superadmin") {
+                // Only restrict items that specify requireRole
+                if (item.requireRole && user.role !== item.requireRole) {
                   return (
                     <div
                       key={item.to}
@@ -94,3 +95,4 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+
