@@ -5,6 +5,7 @@ import { Menu, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
+import { useUser } from "@/context/UserContext";
 
 const navItems = [
   { label: "Dashboard", to: "/dashboard" },
@@ -20,15 +21,25 @@ const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const appUser = useUser();
 
   const handleLogin = () => (window.location.href = "/auth");
   const handleLogout = async () => {
     await signOut();
-    window.location.href = "/"; // redirect to landing page after logout
+    window.location.href = "/";
   };
 
-  // Only show navigation if logged in
   const showNavItems = !!user;
+
+  // Map role for display
+  const roleLabel =
+    appUser.role === "superadmin"
+      ? "Superadmin"
+      : appUser.role === "owner"
+      ? "Owner"
+      : appUser.role === "employee"
+      ? "Employee"
+      : appUser.role;
 
   return (
     <header className="bg-white border-b shadow-sm sticky top-0 z-40">
@@ -57,14 +68,23 @@ const Navbar = () => {
             </nav>
           )}
         </div>
-        {/* Auth Buttons on Right */}
-        <div className="flex-0 flex w-full justify-end md:w-auto mt-4 md:mt-0 gap-2">
-          {user ? (
-            <Button variant="outline" size="sm" onClick={handleLogout}>
-              <LogOut className="mr-2 text-blue-600" />
-              Logout
-            </Button>
-          ) : (
+        {/* Auth/User Info on Right */}
+        <div className="flex-0 flex w-full justify-end md:w-auto mt-4 md:mt-0 gap-2 items-center">
+          {user && (
+            <>
+              <div className="hidden md:block mr-2 text-sm font-medium text-gray-700 select-none">
+                <span className="truncate">{appUser.name}</span>
+                <span className="ml-2 px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600 border border-gray-200 font-semibold">
+                  {roleLabel}
+                </span>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleLogout}>
+                <LogOut className="mr-2 text-blue-600" />
+                Logout
+              </Button>
+            </>
+          )}
+          {!user && (
             <Button variant="default" size="sm" onClick={handleLogin}>
               Login
             </Button>
@@ -85,6 +105,12 @@ const Navbar = () => {
       {mobileOpen && showNavItems && (
         <nav className="md:hidden px-4 pb-2 animate-in fade-in-0 slide-in-from-top-3">
           <div className="flex flex-col gap-1 bg-white rounded-md shadow px-2 py-1">
+            <div className="flex items-center px-3 py-2 gap-2 border-b border-gray-200 mb-1">
+              <span className="truncate font-medium text-gray-800">{appUser.name}</span>
+              <span className="ml-auto px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600 border border-gray-200 font-semibold">
+                {roleLabel}
+              </span>
+            </div>
             {navItems.map((item) => (
               <Link
                 key={item.to}
