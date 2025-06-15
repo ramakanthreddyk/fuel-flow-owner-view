@@ -13,52 +13,56 @@ serve(async (req) => {
   }
 
   try {
-    const { name, email, password, role } = await req.json();
-    if (!name || !email || !password || !role) {
+    const { name, email, password } = await req.json();
+    if (!name || !email || !password) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
         status: 400,
         headers: corsHeaders,
       });
     }
 
+    // Instantiate admin client with Service Role Key
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Insert user
-    const { data: user, error: userError } = await supabase
-      .from("users")
-      .insert([{ name, email, password }])
-      .select("id, name, email")
-      .maybeSingle();
+    // 1. Create Auth User (in auth.users)
+    const { data: userData, error: authError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      user_metadata: { name }
+    });
 
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: userError?.message || "User insert failed" }), {
+    if (authError || !userData?.user) {
+      return new Response(JSON.stringify({ error: authError?.message || "Failed to create auth user" }), {
         status: 400,
         headers: corsHeaders,
       });
     }
 
-    // Insert user role
-    const { error: roleError } = await supabase
-      .from("user_roles")
-      .insert([{ user_id: user.id, role }]);
+    // 2. Add entry to public.users
+    // The trigger will populate user_roles (role: 'employee' by default)
+    const { user } = userData;
+    const { data: appUser, error: userTableError } = await supabase
+      .from("users")
+      .insert([{ id: user.id, name, email, password }])
+      .select("id, name, email")
+      .maybeSingle();
 
-    if (roleError) {
-      // Attempt rollback if possible
-      await supabase.from("users").delete().eq("id", user.id);
-      return new Response(JSON.stringify({ error: "Role insert failed: " + roleError.message }), {
+    if (userTableError || !appUser) {
+      return new Response(JSON.stringify({ error: userTableError?.message || "User insert failed" }), {
         status: 400,
         headers: corsHeaders,
       });
     }
 
     return new Response(
-      JSON.stringify({ id: user.id, name: user.name, email: user.email, role }),
+      JSON.stringify({ id: appUser.id, name: appUser.name, email: appUser.email, role: "employee" }),
       { headers: corsHeaders }
     );
   } catch (err) {
+    // Catch-all error
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: corsHeaders,
