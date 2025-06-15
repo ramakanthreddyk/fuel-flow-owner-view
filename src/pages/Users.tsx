@@ -12,15 +12,6 @@ import { DeleteUserDialog } from "@/components/DeleteUserDialog";
 import { RoleOption, User } from "@/types/user";
 import { ROLE_LABELS } from "@/constants/roles";
 
-type RoleOption = "superadmin" | "owner" | "employee";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: RoleOption;
-}
-
 async function fetchUsersFromSupabase(): Promise<User[]> {
   // Get users and their roles from Supabase
   const { data: usersData, error: usersError } = await supabase.from("users").select("id, name, email");
