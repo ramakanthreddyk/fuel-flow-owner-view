@@ -66,12 +66,15 @@ export function AddUserDialog({ onCreated, onUserCreated }: AddUserDialogProps) 
           .select("id, name, email")
           .maybeSingle()
       );
+      console.log("Attempted to insert user into users table:", insertUser, insertUserErr);
+
       if (insertUserErr || !insertUser) {
         throw new Error(insertUserErr?.message || "User creation failed");
       }
 
       // Confirm user exists before inserting role (helps avoid 409 race condition)
       const userExists = await ensureUserInDb(insertUser.id);
+      console.log("User existence check for role insert:", insertUser.id, userExists);
       if (!userExists) {
         throw new Error(
           "User insert found, but user record not yet available. Please try again."
@@ -84,6 +87,7 @@ export function AddUserDialog({ onCreated, onUserCreated }: AddUserDialogProps) 
           .from("user_roles")
           .insert([{ user_id: insertUser.id, role: values.role }])
       );
+      console.log("Tried inserting user role:", { user_id: insertUser.id, role: values.role }, insertRoleErr);
       if (insertRoleErr) {
         // Clean up: rollback user insert
         await import("@/integrations/supabase/client").then(mod =>
@@ -105,6 +109,7 @@ export function AddUserDialog({ onCreated, onUserCreated }: AddUserDialogProps) 
       onCreated?.();
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
+      console.error("Error in AddUserDialog onSubmit chain:", err);
     }
     setLoading(false);
   }
