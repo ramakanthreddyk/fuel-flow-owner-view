@@ -487,7 +487,14 @@ export default function DataEntryPage() {
               </TabsList>
               <TabsContent value="ocr"><OcrEntryForm /></TabsContent>
               <TabsContent value="manual"><ManualEntryForm /></TabsContent>
-              {/* You may need to re-implement TenderForm and RefillForm below with improved context */}
+              <TabsContent value="tender">
+                {/* Placeholder for TenderForm, implement as a separate small component */}
+                <div className="text-muted-foreground text-center py-10">Tender Entry Form Coming Soon</div>
+              </TabsContent>
+              <TabsContent value="refill">
+                {/* Placeholder for RefillForm, implement as a separate small component */}
+                <div className="text-muted-foreground text-center py-10">Tank Refill Form Coming Soon</div>
+              </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
