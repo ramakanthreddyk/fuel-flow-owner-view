@@ -8,14 +8,11 @@ import summaryRoutes from "./routes/summary";
 import dashboardRoutes from "./routes/dashboard";
 import authRoutes from "./routes/auth";
 import manualReadingsRoutes from "./routes/manual-readings";
-
-// --- Placeholder routes below ---
-import tenderEntriesRoutes from "./routes/tender-entries";
-import refillsRoutes from "./routes/refills";
-import ocrReadingsRoutes from "./routes/ocr-readings";
-import plansRoutes from "./routes/plans";
-import analyticsRoutes from "./routes/analytics";
-import uploadsRoutes from "./routes/uploads";
+import salesRoutes from "./routes/sales";
+import stationOverviewRoutes from "./routes/station-overview";
+import readingsRoutes from "./routes/readings";
+import tenderRoute from "./routes/tender";
+import dashboardRootRoute from "./routes/dashboard-root";
 
 const app = express();
 
@@ -30,6 +27,11 @@ app.use("/api/employees", employeesRoutes);
 app.use("/api/summary", summaryRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/sales", salesRoutes);
+app.use("/api/station-overview", stationOverviewRoutes);
+app.use("/api/readings", readingsRoutes);
+app.use("/api/tender", tenderRoute);
+app.use("/api/dashboard", dashboardRootRoute); // GET /api/dashboard
 
 // Mount placeholder endpoints
 app.use("/api/tender-entries", tenderEntriesRoutes);
