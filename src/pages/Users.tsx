@@ -1,15 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import RequireRole from "@/components/RequireRole";
 import { toast } from "@/hooks/use-toast";
 import { AddUserDialog } from "@/components/AddUserDialog";
 import EditUserDialog from "@/components/EditUserDialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { ChartContainer, ChartLegend, ChartTooltip, ChartLegendContent, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis } from "recharts";
+import { UserTable } from "@/components/UserTable";
+import { UsersRoleChart } from "@/components/UsersRoleChart";
+import { DeleteUserDialog } from "@/components/DeleteUserDialog";
+import { RoleOption, User } from "@/types/user";
+import { ROLE_LABELS } from "@/constants/roles";
 
 type RoleOption = "superadmin" | "owner" | "employee";
 
@@ -18,31 +19,6 @@ interface User {
   name: string;
   email: string;
   role: RoleOption;
-}
-
-const ROLE_LABELS: Record<RoleOption, string> = {
-  superadmin: "Superadmin",
-  owner: "Owner",
-  employee: "Employee",
-};
-
-function UserRowSkeleton() {
-  return (
-    <TableRow>
-      <TableCell>
-        <div className="h-4 bg-gray-200 rounded animate-pulse w-24" />
-      </TableCell>
-      <TableCell>
-        <div className="h-4 bg-gray-200 rounded animate-pulse w-32" />
-      </TableCell>
-      <TableCell>
-        <div className="h-4 bg-gray-200 rounded animate-pulse w-20" />
-      </TableCell>
-      <TableCell>
-        <div className="h-4 bg-gray-200 rounded animate-pulse w-28" />
-      </TableCell>
-    </TableRow>
-  );
 }
 
 async function fetchUsersFromSupabase(): Promise<User[]> {
@@ -173,13 +149,6 @@ export default function UsersPage() {
       : usersFromServer;
   }, [usersFromServer, roleFilter]);
 
-  // Data for the chart: count of users per role
-  const roleCount = ["superadmin", "owner", "employee"].map(role => ({
-    role,
-    label: ROLE_LABELS[role as RoleOption],
-    count: (usersFromServer || []).filter(u => u.role === role).length,
-  }));
-
   return (
     <RequireRole roles={["superadmin"]}>
       <div>
@@ -216,73 +185,15 @@ export default function UsersPage() {
           </div>
         </div>
         <div className="p-4 border rounded bg-white mt-2">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading
-                ? Array.from({ length: 7 }).map((_, k) => <UserRowSkeleton key={k} />)
-                : filteredUsers.length === 0
-                  ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 opacity-60 italic">
-                        No users found.
-                      </TableCell>
-                    </TableRow>
-                    )
-                  : filteredUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>{user.name}</TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell className="capitalize">{ROLE_LABELS[user.role]}</TableCell>
-                        <TableCell>
-                          <Button size="sm" variant="outline" onClick={() => setEditingUser(user)}>Edit</Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            className="ml-2"
-                            onClick={() => setDeleteUser(user)}
-                          >
-                            Delete
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-            </TableBody>
-          </Table>
+          <UserTable
+            users={filteredUsers}
+            isLoading={isLoading}
+            onEdit={setEditingUser}
+            onDelete={setDeleteUser}
+          />
         </div>
         {error && <div className="text-red-600 mt-2">There was an error loading users.</div>}
-
-        {/* User Counts Chart */}
-        <div className="my-8">
-          <h2 className="text-xl font-semibold mb-2">Users per Role</h2>
-          <div className="bg-white border rounded-md p-4 max-w-xl">
-            <ChartContainer config={{
-              superadmin: { label: "Superadmin", color: "#5a67d8" },
-              owner: { label: "Owner", color: "#38b2ac" },
-              employee: { label: "Employee", color: "#f6ad55" },
-            }}>
-              <BarChart data={roleCount} height={200}>
-                <XAxis dataKey="label" />
-                <YAxis allowDecimals={false} />
-                <Bar dataKey="count" name="Count"
-                  fill="#4A90E2"
-                  radius={[4, 4, 0, 0]}
-                  isAnimationActive={false}
-                />
-                <ChartTooltip content={<ChartTooltipContent labelKey="label" />} />
-                <ChartLegend content={<ChartLegendContent nameKey="label" />} />
-              </BarChart>
-            </ChartContainer>
-          </div>
-        </div>
-        {/* Edit User Dialog */}
+        <UsersRoleChart users={usersFromServer || []} />
         {editingUser && (
           <EditUserDialog
             user={editingUser}
@@ -290,31 +201,13 @@ export default function UsersPage() {
             onUserEdited={(usr) => editUserMutation.mutate(usr)}
           />
         )}
-        {/* Delete Confirmation Dialog */}
         {deleteUser && (
-          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/20 backdrop-blur-sm">
-            <div className="bg-white rounded shadow-lg p-6 w-[350px]">
-              <h3 className="text-lg font-semibold mb-2">Delete User?</h3>
-              <p className="mb-4">
-                Are you sure you want to delete user
-                <span className="font-medium ml-1">{deleteUser.name}</span>?
-              </p>
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setDeleteUser(null)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => deleteUserMutation.mutate(deleteUser.id)}
-                >
-                  Delete
-                </Button>
-              </div>
-            </div>
-          </div>
+          <DeleteUserDialog
+            user={deleteUser}
+            onClose={() => setDeleteUser(null)}
+            onDelete={deleteUserMutation.mutate}
+            loading={deleteUserMutation.isPending}
+          />
         )}
       </div>
     </RequireRole>
