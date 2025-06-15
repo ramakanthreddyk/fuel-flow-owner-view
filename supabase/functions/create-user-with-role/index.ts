@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js";
 
@@ -42,16 +43,31 @@ serve(async (req) => {
 
     const userId = userData.user.id;
 
-    // 2. Insert into users table (application-specific user record)
-    const { error: userInsertError } = await supabase
+    // 2. Check if user already exists in users table
+    const { data: existingUser, error: userCheckErr } = await supabase
       .from("users")
-      .insert([{ id: userId, name, email, password }]);
+      .select("id, name, email")
+      .eq("id", userId)
+      .maybeSingle();
 
-    if (userInsertError) {
-      return new Response(JSON.stringify({ error: "User DB insert failed", details: userInsertError.message }), {
+    if (userCheckErr) {
+      return new Response(JSON.stringify({ error: "User lookup failed", details: userCheckErr.message }), {
         status: 400,
         headers: corsHeaders,
       });
+    }
+
+    if (!existingUser) {
+      const { error: userInsertError } = await supabase
+        .from("users")
+        .insert([{ id: userId, name, email, password }]);
+
+      if (userInsertError) {
+        return new Response(JSON.stringify({ error: "User DB insert failed", details: userInsertError.message }), {
+          status: 400,
+          headers: corsHeaders,
+        });
+      }
     }
 
     // 3. Ensure user role is set AFTER user insert is confirmed
