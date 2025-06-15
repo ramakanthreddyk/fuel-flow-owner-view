@@ -6,6 +6,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import RequireRole from "@/components/RequireRole";
 import { toast } from "@/hooks/use-toast";
 import { AddUserDialog } from "@/components/AddUserDialog";
+import EditUserDialog from "@/components/EditUserDialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { ChartContainer, ChartLegend, ChartTooltip, ChartLegendContent, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis } from "recharts";
@@ -37,13 +38,17 @@ function UserRowSkeleton() {
       <TableCell>
         <div className="h-4 bg-gray-200 rounded animate-pulse w-20" />
       </TableCell>
+      <TableCell>
+        <div className="h-4 bg-gray-200 rounded animate-pulse w-28" />
+      </TableCell>
     </TableRow>
   );
 }
 
 export default function UsersPage() {
   const [roleFilter, setRoleFilter] = useState<RoleOption | "all">("all");
-  // Maintain local users for optimistic update on add user
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [deleteUser, setDeleteUser] = useState<User | null>(null);
   const {
     data: usersFromServer,
     isLoading,
@@ -61,7 +66,6 @@ export default function UsersPage() {
   const [localUsers, setLocalUsers] = useState<User[]>([]);
 
   // When server data changes, update localUsers only if empty
-  // (Prevents overwriting new locally-added users. You can adjust this logic as you prefer for future backend sync)
   if (usersFromServer && localUsers.length === 0) {
     setLocalUsers(usersFromServer);
   }
@@ -88,6 +92,26 @@ export default function UsersPage() {
     label: ROLE_LABELS[role as RoleOption],
     count: usersForChart.filter(u => u.role === role).length,
   }));
+
+  // Handler for updating users after edit
+  function handleUserEdited(updatedUser: User) {
+    setLocalUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
+    toast({ title: "User updated", description: `User ${updatedUser.name} saved.` });
+  }
+
+  // Handler for delete
+  async function confirmDeleteUser(id: string) {
+    try {
+      const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete user");
+      setLocalUsers(prev => prev.filter(u => u.id !== id));
+      toast({ title: "User deleted", description: "User account removed." });
+      setDeleteUser(null);
+      refetch();
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    }
+  }
 
   return (
     <RequireRole roles={["superadmin"]}>
@@ -121,6 +145,7 @@ export default function UsersPage() {
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -129,7 +154,7 @@ export default function UsersPage() {
                 : filteredUsers.length === 0
                   ? (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center py-8 opacity-60 italic">
+                      <TableCell colSpan={4} className="text-center py-8 opacity-60 italic">
                         No users found.
                       </TableCell>
                     </TableRow>
@@ -139,6 +164,17 @@ export default function UsersPage() {
                         <TableCell>{user.name}</TableCell>
                         <TableCell>{user.email}</TableCell>
                         <TableCell className="capitalize">{ROLE_LABELS[user.role]}</TableCell>
+                        <TableCell>
+                          <Button size="sm" variant="outline" onClick={() => setEditingUser(user)}>Edit</Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="ml-2"
+                            onClick={() => setDeleteUser(user)}
+                          >
+                            Delete
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
             </TableBody>
@@ -169,6 +205,40 @@ export default function UsersPage() {
             </ChartContainer>
           </div>
         </div>
+        {/* Edit User Dialog */}
+        {editingUser && (
+          <EditUserDialog
+            user={editingUser}
+            onClose={() => setEditingUser(null)}
+            onUserEdited={handleUserEdited}
+          />
+        )}
+        {/* Delete Confirmation Dialog */}
+        {deleteUser && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/20 backdrop-blur-sm">
+            <div className="bg-white rounded shadow-lg p-6 w-[350px]">
+              <h3 className="text-lg font-semibold mb-2">Delete User?</h3>
+              <p className="mb-4">
+                Are you sure you want to delete user
+                <span className="font-medium ml-1">{deleteUser.name}</span>?
+              </p>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteUser(null)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => confirmDeleteUser(deleteUser.id)}
+                >
+                  Delete
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </RequireRole>
   );
